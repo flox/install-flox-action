@@ -1,0 +1,11 @@
+name: 'Install Flox'
+description: 'Installs Flox on GitHub Actions for the supported platforms: Linux and macOS.'
+author: 'Yannik Sander'
+branding:
+  color: 'blue'
+  icon: 'moon'
+runs:
+  using: 'composite'
+  steps:
+    - run : ${{ github.action_path }}/install-flox.sh
+      shell: bash

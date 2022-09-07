@@ -1,0 +1,19 @@
+name: "install-flox-action test"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  simple-build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Nix
+      uses: cachix/install-nix-action
+    - name: Install Flox
+      uses: ./
