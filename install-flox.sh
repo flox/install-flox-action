@@ -13,7 +13,7 @@ echo "::group::Installing Flox"
 nix --extra-experimental-features "flakes nix-command" \
     --access-tokens "github.com=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" \
     profile install \
-    "github:flox/floxpkgs#catalog.$(nix eval --expr  'builtins.currentSystem' --impure).stable.floxpkgs.flox"
+    "github:flox/floxpkgs#evalCatalog.$(nix eval --expr  'builtins.currentSystem' --impure).stable.floxpkgs.flox"
 
 
 # Close the log message group which was opened above
