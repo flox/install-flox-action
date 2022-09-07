@@ -14,6 +14,7 @@ nix --extra-experimental-features "flakes nix-command" \
     --access-tokens "github.com=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" \
     profile install \
     --impure \
+    --accept-flake-config \
     "github:flox/floxpkgs#evalCatalog.$(nix eval --expr  'builtins.currentSystem' --impure).stable.floxpkgs.flox"
 
 
