@@ -14,6 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Nix
-      uses: cachix/install-nix-action
+      uses: cachix/install-nix-action@v17
     - name: Install Flox
       uses: ./
