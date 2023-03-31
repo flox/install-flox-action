@@ -1,11 +1,56 @@
-name: 'Install Flox'
-description: 'Installs Flox on GitHub Actions for the supported platforms: Linux and macOS.'
-author: 'Yannik Sander'
+name: "Install Flox"
+description: "Installs Flox on GitHub Actions for the supported platforms: Linux and macOS."
+author: "Yannik Sander"
+
 branding:
-  color: 'blue'
-  icon: 'moon'
+  color: "blue"
+  icon: "moon"
+
+inputs:
+  github-access-token:
+    description: "GitHub access token to use when using the GitHub fetcher"
+  ssh-key:
+    description: "SSH key to use when fetching over SSH"
+  cache-key:
+    description: "Cache key to use for retaining the Nix store"
+  existing-nix:
+    description: "If we should utilize the pre-installed Nix instead of adding our own"
+
 runs:
-  using: 'composite'
+  using: "composite"
+
   steps:
-    - run : ${{ github.action_path }}/install-flox.sh
+    - uses: cachix/install-nix-action@v19
+      if: inputs.existing_nix != 'true'
+      with:
+        github_access_token: ${{ inputs.github-access-token }}
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          max-jobs = auto
+          cores = 0
+          builders-use-substitutes = true
+          fallback = true
+          connect-timeout = 5
+          stalled-download-timeout = 90
+
+    - name: Install flox
       shell: bash
+      run: ${{ github.action_path }}/install-flox.sh
+
+    - name: "Create Nix store cache"
+      uses: actions/cache@v3.0.8
+      id: nix-cache
+      if: "inputs.cache-key != ''"
+      with:
+        path: /tmp/nixcache
+        key: "${{ inputs.cache-key }}"
+
+    - name: "Import Nix store cache"
+      if: "steps.nix-cache.outputs.cache-hit == 'true'"
+      shell: bash
+      run: "nix-store --import < /tmp/nixcache"
+
+    - name: "Enable exporting Nix store to cache"
+      if: "inputs.cache-key != ''"
+      shell: bash
+      run: ${{ github.action_path }}/enable-export-to-cache.sh
