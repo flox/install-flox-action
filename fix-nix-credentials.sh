@@ -14,8 +14,8 @@ else
   ssh-keygen -f "$HOME/.ssh/id_$INPUTS_SSH_KEY_FORMAT" -y > "$HOME/.ssh/id_$INPUTS_SSH_KEY_FORMAT.pub"
 fi
 chmod 600 "$HOME/.ssh/id_$INPUTS_SSH_KEY_FORMAT"
-ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
-ssh-add "$HOME/.ssh/id_$INPUTS_SSH_KEY_FORMAT"
+# ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
+# ssh-add "$HOME/.ssh/id_$INPUTS_SSH_KEY_FORMAT"
 git config --global user.email "floxuser@example.invalid"
 git config --global user.name "flox User"
 
