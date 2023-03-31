@@ -1,11 +1,79 @@
-name: 'Install Flox'
-description: 'Installs Flox on GitHub Actions for the supported platforms: Linux and macOS.'
-author: 'Yannik Sander'
+name: "Install flox"
+description: "Installs flox on GitHub Actions for the supported platforms: GNU/Linux and macOS."
+author: "flox"
+
 branding:
-  color: 'blue'
-  icon: 'moon'
+  color: "blue"
+  icon: "moon"
+
+inputs:
+  github-access-token:
+    description: "GitHub access token to use when using the GitHub fetcher"
+  ssh-key:
+    description: "SSH key to use when fetching over SSH"
+  ssh-key-format:
+    description: "Format of ssh-key or format to generate"
+    default: "ed25519"
+  ssh-auth-sock:
+    description: "Used to set SSH_AUTH_SOCK variable, used by some Nix fetchers"
+  cache-key:
+    description: "Cache key to use for retaining the Nix store"
+  existing-nix:
+    description: "If we should utilize the pre-installed Nix instead of adding our own"
+
 runs:
-  using: 'composite'
+  using: "composite"
+
   steps:
-    - run : ${{ github.action_path }}/install-flox.sh
-      shell: bash
+    - uses: "cachix/install-nix-action@v20"
+      if: "inputs.existing_nix != 'true'"
+      with:
+        github_access_token: "${{ inputs.github-access-token }}"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          max-jobs = auto
+          cores = 0
+          builders-use-substitutes = true
+          fallback = true
+          connect-timeout = 5
+          stalled-download-timeout = 90
+
+    - name: "Fix Nix credentials"
+      shell: "bash"
+      run: "${{ github.action_path }}/fix-nix-credentials.sh"
+      env:
+        INPUTS_SSH_KEY_FORMAT: "${{ inputs.ssh-key-format }}"
+        INPUTS_SSH_KEY: "${{ inputs.ssh-key }}"
+        INPUTS_SSH_AUTH_SOCK: "${{ inputs.ssh-auth-sock }}"
+        INPUTS_GITHUB_ACCESS_TOKEN: "${{ inputs.github-access-token }}"
+
+
+    - name: "Create Nix store cache"
+      uses: "actions/cache@v3.0.8"
+      id: "nix-cache"
+      if: "inputs.cache-key != ''"
+      with:
+        path: "/tmp/nixcache"
+        key: "${{ inputs.cache-key }}"
+
+    - name: "Import Nix store cache"
+      if: "steps.nix-cache.outputs.cache-hit == 'true'"
+      shell: "bash"
+      run: |
+        nix-store --import < /tmp/nixcache
+
+    - name: "Install flox"
+      shell: "bash"
+      run: "${{ github.action_path }}/install-flox.sh"
+
+    - name: "Enable exporting Nix store to cache"
+      if: "inputs.cache-key != ''"
+      shell: "bash"
+      run: |
+        echo "post-build-hook = ${{ github.action_path }}/write-built.sh" | sudo tee -a /etc/nix/nix.conf
+        mkdir -p "$HOME/.local/bin"
+        cp '${{ github.action_path }}/save-built.sh' "$HOME/.local/bin/save-built"
+        echo "PATH='$PATH:$HOME/.local/bin'" > "$GITHUB_ENV"
+
+        # Run this at the start to make sure the cache works, and to get flox itself cached
+        ${{ github.action_path }}/save-built.sh

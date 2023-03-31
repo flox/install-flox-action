@@ -9,14 +9,10 @@ fi
 # GitHub command to put the following log messages into a group which is collapsed by default
 echo "::group::Installing Flox"
 
-# [sic] Remove access-token after closed beta
-nix --extra-experimental-features "flakes nix-command" \
-    --access-tokens "github.com=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" \
-    profile install \
-    --impure \
-    --accept-flake-config \
-    "github:flox/floxpkgs#evalCatalog.$(nix eval --expr  'builtins.currentSystem' --impure).stable.floxpkgs.flox"
-
+nix profile install --impure \
+      --experimental-features "nix-command flakes" \
+      --accept-flake-config \
+      'github:flox/floxpkgs#flox.fromCatalog'
 
 # Close the log message group which was opened above
 echo "::endgroup::"
