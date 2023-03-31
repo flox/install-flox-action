@@ -33,6 +33,10 @@ runs:
           connect-timeout = 5
           stalled-download-timeout = 90
 
+    - name: Fix Nix credentials
+      shell: bash
+      run: ${{ github.action_path }}/fix-nix-credentials.sh
+
     - name: Install flox
       shell: bash
       run: ${{ github.action_path }}/install-flox.sh
