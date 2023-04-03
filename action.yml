@@ -65,4 +65,5 @@ runs:
     - name: "Enable exporting Nix store to cache"
       if: inputs.cache-key != ''
       shell: bash
-      run: echo "post-build-hook = ${{ github.action_path }}/export-to-cache.sh" | sudo tee /etc/nix/nix.conf
+      run: |
+        echo "post-build-hook = ${{ github.action_path }}/export-to-cache.sh" | sudo tee /etc/nix/nix.conf
