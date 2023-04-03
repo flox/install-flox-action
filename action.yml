@@ -8,12 +8,25 @@ branding:
 
 inputs:
   github-access-token:
-    description: "GitHub access token to use when using the GitHub fetcher"
+    description: "GitHub Personal Access Token used by nix fetchers"
   ssh-key:
     description: "SSH key to use when fetching over SSH"
   ssh-key-format:
     description: "Format of ssh-key or format to generate"
     default: ed25519
+  ssh-auth-sock:
+    description: "Used to set SSH_AUTH_SOCK variable used by some nix fetchers"
+    default: /tmp/ssh_agent.sock
+  ssh-dir:
+    description: "Location where SSH config files are written"
+    default: /home/runner/.ssh
+  ssh-user-email:
+    description: "Email used for any git commits"
+    default: "floxuser@example.invalid"
+  ssh-user-name:
+    description: "Name used for any git commits"
+    default: "Flox User"
+    example: "Jane Doe"
   cache-key:
     description: "Cache key to use for retaining the Nix store"
   existing-nix:
@@ -21,6 +34,13 @@ inputs:
 
 runs:
   using: "composite"
+  # Used to setup SSH Agent
+  # Used to setup SSH Agent so that fetching `git+ssh://' from `nix'.
+  # These routines invoke `git' directly as the user who runs `nix' so this
+  # variable must be set globally for the runner.
+  # TODO: make
+  env:
+    SSH_AUTH_SOCK: ${{ inputs.ssh-auth-sock }}
 
   steps:
     - uses: cachix/install-nix-action@v19
@@ -36,13 +56,46 @@ runs:
           connect-timeout = 5
           stalled-download-timeout = 90
 
+
     - name: Fix Nix credentials
       shell: bash
-      run: ${{ github.action_path }}/fix-nix-credentials.sh
-      env:
-        INPUTS_SSH_KEY_FORMAT: ${{ inputs.ssh-key-format }}
-        INPUTS_SSH_KEY: ${{ inputs.ssh-key }}
-        INPUTS_GITHUB_ACCESS_TOKEN: ${{ inputs.github-access-token }}
+      run: |
+        set -eu;
+        set -o pipefail;
+        # GitHub command to put the following log messages into a group which is
+        # collapsed by default.
+        echo "::group::Setting up Nix credentials/auth";
+        # Allows `builtins.fetchGit' and related to work.
+        mkdir -p "${{ inputs.ssh-dir }}";
+        ssh-keyscan github.com >> "${{ inputs.ssh-dir }}/known_hosts"
+        if [[ -z "${{ inputs.ssh-key }}" ]]; then
+          ssh-keygen                                                     \
+            -q -N ''                                                     \
+            -t "${{ inputs.ssh-key-format }}"                            \
+            -f "${{ inputs.ssh-dir }}/id_${{ inputs.ssh-key-format }}";
+        else
+          echo "${{ inputs.ssh-key }}"                                  \
+            > "${{ inputs.ssh-dir }}/id_${{ inputs.ssh-key-format }}";
+          ssh-keygen                                                           \
+            -f "${{ inputs.ssh-dir }}/id_${{ inputs.ssh-key-format }}"         \
+            -y > "${{ inputs.ssh-dir }}/id_${{ inputs.ssh-key-format }}.pub";
+        fi
+        # Setup SSH Agent so that fetching `git+ssh' from `nix' builtins works.
+        chmod 600 "${{ inputs.ssh-dir }}/id_${{ inputs.ssh-key-format }}";
+        ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null;
+        ssh-add "${{ inputs.ssh-dir }}/id_${{ inputs.ssh-key-format }}";
+        git config --global user.email "${{ inputs.ssh-user-email }}";
+        git config --global user.name "${{ inputs.ssh-user-name }}";
+        # Allows `builtins.fetch{url,Tarball}' and related to work:
+        mkdir -p "/home/runner/.config/nix";
+        {
+          for p in api.github.com pkgs.github.com github.com; do
+            echo "machine $p password ${{ inputs.github-access-token }}";
+          done
+        } >> "$HOME/.config/nix/netrc"
+        # Close the log message group which was opened above
+        echo "::endgroup::"
+
 
     - name: Install flox
       shell: bash
