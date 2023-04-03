@@ -51,17 +51,18 @@ runs:
     - name: "Create Nix store cache"
       uses: actions/cache@v3.0.8
       id: nix-cache
-      if: "inputs.cache-key != ''"
+      if: inputs.cache-key != ''
       with:
         path: /tmp/nixcache
         key: "${{ inputs.cache-key }}"
 
     - name: "Import Nix store cache"
-      if: "steps.nix-cache.outputs.cache-hit == 'true'"
+      if: steps.nix-cache.outputs.cache-hit == 'true'
       shell: bash
-      run: "nix-store --import < /tmp/nixcache"
+      run: |
+        nix-store --import < /tmp/nixcache
 
     - name: "Enable exporting Nix store to cache"
-      if: "inputs.cache-key != ''"
+      if: inputs.cache-key != ''
       shell: bash
       run: echo "post-build-hook = ${{ github.action_path }}/export-to-cache.sh" | sudo tee /etc/nix/nix.conf
