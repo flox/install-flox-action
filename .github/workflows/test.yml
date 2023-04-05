@@ -1,4 +1,4 @@
-name: "install-flox-action test"
+name: 'install-flox-action test'
 on:
   pull_request:
   push:
@@ -13,6 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: ./
+      - name: Install Flox
+        uses: ./
         with:
           cache-key: install-flox-action-test

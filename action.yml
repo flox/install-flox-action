@@ -1,39 +1,39 @@
-name: "Install Flox"
-description: "Installs Flox on GitHub Actions for the supported platforms: Linux and macOS."
-author: "Yannik Sander"
+name: 'Install Flox'
+description: 'Installs Flox on GitHub Actions for the supported platforms: Linux and macOS.'
+author: 'Yannik Sander'
 
 branding:
-  color: "blue"
-  icon: "moon"
+  color: 'blue'
+  icon: 'moon'
 
 inputs:
   github-access-token:
-    description: "GitHub Personal Access Token used by nix fetchers"
+    description: 'GitHub Personal Access Token used by nix fetchers'
   ssh-key:
-    description: "SSH key to use when fetching over SSH"
+    description: 'SSH key to use when fetching over SSH'
   ssh-key-format:
-    description: "Format of ssh-key or format to generate"
+    description: 'Format of ssh-key or format to generate'
     default: ed25519
   ssh-auth-sock:
-    description: "Used to set SSH_AUTH_SOCK variable used by some nix fetchers"
+    description: 'Used to set SSH_AUTH_SOCK variable used by some nix fetchers'
     default: /tmp/ssh_agent.sock
   ssh-dir:
-    description: "Location where SSH config files are written"
+    description: 'Location where SSH config files are written'
     default: /home/runner/.ssh
   ssh-user-email:
-    description: "Email used for any git commits"
-    default: "floxuser@example.invalid"
+    description: 'Email used for any git commits'
+    default: 'floxuser@example.invalid'
   ssh-user-name:
-    description: "Name used for any git commits"
-    default: "Flox User"
-    example: "Jane Doe"
+    description: 'Name used for any git commits'
+    default: 'Flox User'
+    example: 'Jane Doe'
   cache-key:
-    description: "Cache key to use for retaining the Nix store"
+    description: 'Cache key to use for retaining the Nix store'
   existing-nix:
-    description: "If we should utilize the pre-installed Nix instead of adding our own"
+    description: 'If we should utilize the pre-installed Nix instead of adding our own'
 
 runs:
-  using: "composite"
+  using: 'composite'
   # Used to setup SSH Agent
   # Used to setup SSH Agent so that fetching `git+ssh://' from `nix'.
   # These routines invoke `git' directly as the user who runs `nix' so this
@@ -101,21 +101,20 @@ runs:
       shell: bash
       run: ${{ github.action_path }}/install-flox.sh
 
-    - name: "Create Nix store cache"
+    - name: 'Create Nix store cache'
       uses: actions/cache@v3.0.8
       id: nix-cache
       if: inputs.cache-key != ''
       with:
         path: /tmp/nixcache
-        key: "${{ inputs.cache-key }}"
+        key: ${{ inputs.cache-key }}
 
-    - name: "Import Nix store cache"
+    - name: 'Import Nix store cache'
       if: steps.nix-cache.outputs.cache-hit == 'true'
       shell: bash
-      run: |
-        nix-store --import < /tmp/nixcache
+      run: nix-store --import < /tmp/nixcache
 
-    - name: "Enable exporting Nix store to cache"
+    - name: 'Enable exporting Nix store to cache'
       if: inputs.cache-key != ''
       shell: bash
       run: |
