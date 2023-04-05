@@ -34,14 +34,6 @@ inputs:
 
 runs:
   using: "composite"
-  # Used to setup SSH Agent
-  # Used to setup SSH Agent so that fetching `git+ssh://' from `nix'.
-  # These routines invoke `git' directly as the user who runs `nix' so this
-  # variable must be set globally for the runner.
-  # TODO: make
-  env:
-    SSH_AUTH_SOCK: "${{ inputs.ssh-auth-sock }}"
-
   steps:
     - uses: cachix/install-nix-action@v19
       if: inputs.existing_nix != 'true'
@@ -56,9 +48,15 @@ runs:
           connect-timeout = 5
           stalled-download-timeout = 90
 
-
     - name: Fix Nix credentials
       shell: bash
+      # Used to setup SSH Agent
+      # Used to setup SSH Agent so that fetching `git+ssh://' from `nix'.
+      # These routines invoke `git' directly as the user who runs `nix' so this
+      # variable must be set globally for the runner.
+      # TODO: make
+      env:
+        SSH_AUTH_SOCK: "${{ inputs.ssh-auth-sock }}"
       run: |
         set -eu;
         set -o pipefail;
