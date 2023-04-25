@@ -74,7 +74,7 @@ jobs:
       uses: actions/checkout
 
     - name: Install flox
-      uses: cachix/install-flox-action
+      uses: flox/install-flox-action
 
     - name: Build
       run: flox build
