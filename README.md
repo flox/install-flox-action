@@ -59,7 +59,25 @@ as well as making them accessible to everybody.
 Create `.github/workflows/ci.yml` in your repo with the following contents:
 
 ```yml
-???
+name: "CI"
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout
+
+    - name: Install flox
+      uses: cachix/install-flox-action
+
+    - name: Build
+      run: flox build
 ```
 
 ## 📫 Have a question? Want to chat? Ran into a problem?
@@ -75,12 +93,6 @@ account][twitter] or chat to us directly on [Matrix][matrix] or
 Feel free to [file a new issue][new-issue] with a respective title and
 description on the the `flox/install-flox-action` repository. If you already
 found a solution to your problem, we would love to review your pull request!
-
-
-## ⭐️ Contribute
-
-We welcome contributions to this project. Please read the [Contributor
-guide](./CONTRIBUTING.md) first.
 
 
 ## 🪪 License
