@@ -71,10 +71,10 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout
+      uses: actions/checkout@v3
 
     - name: Install flox
-      uses: flox/install-flox-action
+      uses: flox/install-flox-action@v1
 
     - name: Build
       run: flox build
