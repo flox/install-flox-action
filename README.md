@@ -74,7 +74,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install flox
-      uses: flox/install-flox-action@v1
+      uses: flox/install-flox-action@v1.0.0
 
     - name: Build
       run: flox build
