@@ -25,7 +25,6 @@ nohup ssh-agent -D > .ssh-agent-out &
 eval "$(tail -f .ssh-agent-out | sed '/echo Agent pid/ q')"
 
 echo "SSH_AUTH_SOCK='$SSH_AUTH_SOCK'" > "$GITHUB_ENV"
-echo "SSH_AGENT_PID='$SSH_AGENT_PID'" > "$GITHUB_ENV"
 
 git config --global user.email || git config --global user.email "floxuser@example.invalid"
 git config --global user.name || git config --global user.name "flox User"
