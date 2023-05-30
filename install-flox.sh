@@ -14,6 +14,9 @@ nix profile install --impure \
       --accept-flake-config \
       'github:flox/floxpkgs#flox.fromCatalog'
 
+# This may not already be included if Nix didn't come from install-nix-action
+echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+
 # Close the log message group which was opened above
 echo "::endgroup::"
 
