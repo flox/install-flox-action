@@ -17,7 +17,9 @@ nix profile install --impure \
 # Check it runs
 $HOME/.nix-profile/bin/flox --version
 
-# This may not already be included if Nix didn't come from install-nix-action
+# This might already be set e.g. if Nix was installed using install-nix-action.
+# If Nix was already installed through other means (e.g. on a hosted runner)
+# this path might be missing, so we include it to be safe.
 echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
 
 # Close the log message group which was opened above
