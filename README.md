@@ -106,5 +106,5 @@ The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
 [discourse]: https://discourse.floxdev.com
 [twitter]: https://twitter.com/floxdevelopment
 [matrix]: https://matrix.to/#/#flox:matrix.org
-[discord]: https://discord.gg/mxUgrRGP
+[discord]: https://discord.gg/5H7hN57eQR
 [nix-website]: https://nixos.org
