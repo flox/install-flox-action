@@ -22,6 +22,9 @@ inputs:
     description: "If we should utilize the pre-installed Nix instead of adding our own"
   substituter:
     description: "Default substituter to use for uploads"
+  substituter-options:
+    description: "Default substituter options"
+    default: "?secret-key=/tmp/secret-key&write-nar-listing=1&ls-compression=br"
   substituter-key:
     description: "Substituter key created by `nix key generate-secret`"
   aws-access-key-id:
@@ -87,7 +90,7 @@ runs:
       shell: "bash"
       run: |
         echo "${{ inputs.substituter-key }}" > /tmp/secret-key
-        echo "SUBSTITUTER=${{ inputs.substituter }}?secret-key=/tmp/secret-key&write-nar-listing=1&ls-compression=br" >> "$GITHUB_ENV"
+        echo "FLOX_SUBSTITUTER=${{ inputs.substituter }}${{ inputs.substiter-options }}" >> "$GITHUB_ENV"
         echo "${{ inputs.substituter-key }}" | flox nix key convert-secret-to-public | sed 's/^/extra-trusted-public-keys = /'  | sudo tee -a /etc/nix/nix.conf
         echo | sudo tee -a /etc/nix/nix.conf
         echo '${{ inputs.substituter }}' | sed 's/^/extra-substituters = /'  | sudo tee -a /etc/nix/nix.conf
