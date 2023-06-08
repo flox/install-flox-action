@@ -90,7 +90,7 @@ runs:
       shell: "bash"
       run: |
         echo "${{ inputs.substituter-key }}" > /tmp/secret-key
-        echo "FLOX_SUBSTITUTER=${{ inputs.substituter }}${{ inputs.substiter-options }}" >> "$GITHUB_ENV"
+        echo "FLOX_SUBSTITUTER=${{ inputs.substituter }}${{ inputs.substituter-options }}" >> "$GITHUB_ENV"
         echo "${{ inputs.substituter-key }}" | flox nix key convert-secret-to-public | sed 's/^/extra-trusted-public-keys = /'  | sudo tee -a /etc/nix/nix.conf
         echo | sudo tee -a /etc/nix/nix.conf
         echo '${{ inputs.substituter }}' | sed 's/^/extra-substituters = /'  | sudo tee -a /etc/nix/nix.conf
