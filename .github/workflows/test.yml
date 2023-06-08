@@ -1,9 +1,10 @@
 name: "install-flox-action test"
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
-      - "master"
+      - "main"
 
 jobs:
   simple-build:
