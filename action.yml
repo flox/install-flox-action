@@ -20,6 +20,17 @@ inputs:
     description: "Cache key to use for retaining the Nix store"
   existing-nix:
     description: "If we should utilize the pre-installed Nix instead of adding our own"
+  substituter:
+    description: "Default substituter to use for uploads"
+  substituter-options:
+    description: "Default substituter options"
+    default: "?secret-key=/tmp/secret-key&write-nar-listing=1&ls-compression=br"
+  substituter-key:
+    description: "Substituter key created by `nix key generate-secret`"
+  aws-access-key-id:
+    description: "AWS access key to upload"
+  aws-secret-access-key:
+    description: "AWS secret key to upload"
 
 runs:
   using: "composite"
@@ -65,6 +76,31 @@ runs:
     - name: "Install flox"
       shell: "bash"
       run: "${{ github.action_path }}/install-flox.sh"
+
+    - name: "Enable using Nix post-build-hook on each built path"
+      if: "inputs.post-build-hook != ''"
+      shell: "bash"
+      run: |
+        echo '${{ inputs.post-build-hook }}' | sudo tee -a /tmp/post-build-hook
+        echo "post-build-hook = /etc/nix/post-build-hook" | sudo tee -a /etc/nix/nix.conf
+        sudo chmod +x /tmp/post-build-hook
+
+    - name: "Setup substituter"
+      if: "inputs.substituter != ''"
+      shell: "bash"
+      run: |
+        echo "${{ inputs.substituter-key }}" > /tmp/secret-key
+        echo "FLOX_SUBSTITUTER=${{ inputs.substituter }}${{ inputs.substiter-options }}" >> "$GITHUB_ENV"
+        echo "${{ inputs.substituter-key }}" | flox nix key convert-secret-to-public | sed 's/^/extra-trusted-public-keys = /'  | sudo tee -a /etc/nix/nix.conf
+        echo | sudo tee -a /etc/nix/nix.conf
+        echo '${{ inputs.substituter }}' | sed 's/^/extra-substituters = /'  | sudo tee -a /etc/nix/nix.conf
+        sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
+        printf "%s\n" '[Service]' 'Environment=AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key-id }}' 'Environment=AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}' | sudo tee /etc/systemd/system/nix-daemon.service.d/aws-credentials.conf
+        echo "AWS_ACCESS_KEY_ID=${{ inputs.aws-access-key-id }}" >> "$GITHUB_ENV"
+        echo "AWS_SECRET_ACCESS_KEY=${{ inputs.aws-secret-access-key }}" >> "$GITHUB_ENV"
+        sudo systemctl cat nix-daemon.service
+        sudo systemctl daemon-reload
+        sudo systemctl restart nix-daemon.service
 
     - name: "Enable exporting Nix store to cache"
       if: "inputs.cache-key != ''"
