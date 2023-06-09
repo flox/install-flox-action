@@ -33,8 +33,9 @@ jobs:
           - package: nixpkgs#jq
 
     steps:
+      - uses: "actions/checkout@v3"
       - name: Install flox
-        uses: flox/install-flox-action@main
+        uses: "./"
         with:
           substituter: "file://${{ runner.temp }}/nixcache"
           substituter-options: ""
