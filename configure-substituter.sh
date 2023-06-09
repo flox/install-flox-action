@@ -6,7 +6,7 @@ echo "${INPUT_SUBSTITUTER_KEY}" >/tmp/secret-key
 
 # Populate GitHub's environment with the substituter's URL and options, and AWS's credentials.
 {
-	echo "SUBSTITUTER=${INPUT_SUBSTITUTER}${INPUT_SUBSTITUTER_OPTIONS}"
+	echo "FLOX_SUBSTITUTER=${INPUT_SUBSTITUTER}${INPUT_SUBSTITUTER_OPTIONS}"
 	echo "${INPUT_AWS_ACCESS_KEY_ID}"
 	echo "${INPUT_AWS_SECRET_ACCESS_KEY}"
 } >>"${GITHUB_ENV}"
