@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+echo "::group::Setting up substituter ${INPUT_SUBSTITUTER}"
+
 echo "${INPUT_SUBSTITUTER_KEY}" >/tmp/secret-key
 
 # Populate GitHub's environment with the substituter's URL and options, and AWS's credentials.
@@ -28,3 +30,5 @@ printf "%s\n" \
 
 sudo systemctl daemon-reload
 sudo systemctl restart nix-daemon.service
+
+echo "::endgroup::"
