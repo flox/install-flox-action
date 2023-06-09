@@ -38,6 +38,9 @@ jobs:
         with:
           substituter: "file://${{ runner.temp }}/nixcache"
           substituter-options: ""
+          # NOTE: This should be coming from the secrets conext.
+          # We're using the testing-only key here for testing purposes only!
+          # See for https://docs.github.com/en/actions/learn-github-actions/contexts#secrets-context more info.
           substituter-key: "testing-only:77peiBuSA5nrF81iUqmWef67KajfGpzqcqPOIfz/qyrJQMaV5w7xdt8VCKrThI7Eu0T94shSuAj1ferF78bpww=="
 
       - name: Build
