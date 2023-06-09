@@ -47,14 +47,23 @@ jobs:
       - name: Build
         run: |
           flox nix build --json -L --print-out-paths ${{ matrix.package }}
-          rm result*
+
+      - name: Clean results
+        run: |
+          rm -rf result*
+
+      - name: Clean cache
+        run: |
+          sudo rm -rf ${{ runner.temp }}/nixcache
 
       - name: Cache
         run: |
-          sudo rm -rf ${{ runner.temp }}/nixcache
           flox nix copy --to "$FLOX_SUBSTITUTER" -vv ${{ matrix.package }}
+
+      - name: Collect garbage
+        run: |
+          flox nix store gc
 
       - name: Build with caching
         run: |
-          flox nix store gc
           flox nix build -j0 --json -L --print-out-paths ${{ matrix.package }}
