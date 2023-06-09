@@ -33,24 +33,37 @@ jobs:
           - package: nixpkgs#jq
 
     steps:
+      - uses: "actions/checkout@v3"
       - name: Install flox
-        uses: flox/install-flox-action@main
+        uses: "./"
         with:
           substituter: "file://${{ runner.temp }}/nixcache"
           substituter-options: ""
+          # NOTE: This should be coming from the secrets conext.
+          # We're using the testing-only key here for testing purposes only!
+          # See for https://docs.github.com/en/actions/learn-github-actions/contexts#secrets-context more info.
           substituter-key: "testing-only:77peiBuSA5nrF81iUqmWef67KajfGpzqcqPOIfz/qyrJQMaV5w7xdt8VCKrThI7Eu0T94shSuAj1ferF78bpww=="
 
       - name: Build
         run: |
           flox nix build --json -L --print-out-paths ${{ matrix.package }}
-          rm result*
+
+      - name: Clean results
+        run: |
+          rm -rf result*
+
+      - name: Clean cache
+        run: |
+          sudo rm -rf ${{ runner.temp }}/nixcache
 
       - name: Cache
         run: |
-          sudo rm -rf ${{ runner.temp }}/nixcache
           flox nix copy --to "$FLOX_SUBSTITUTER" -vv ${{ matrix.package }}
+
+      - name: Collect garbage
+        run: |
+          flox nix store gc
 
       - name: Build with caching
         run: |
-          flox nix store gc
           flox nix build -j0 --json -L --print-out-paths ${{ matrix.package }}
