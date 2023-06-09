@@ -79,7 +79,7 @@ runs:
     - name: "Setup substituter"
       if: "inputs.substituter != ''"
       shell: "bash"
-      run: "sudo -E ${{ github.action_path }}/configure-substituter.sh"
+      run: "${{ github.action_path }}/configure-substituter.sh"
       env:
         INPUT_SUBSTITUTER: "${{ inputs.substituter }}"
         INPUT_SUBSTITUTER_KEY: "${{ inputs.substituter-key }}"
