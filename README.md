@@ -80,6 +80,48 @@ jobs:
       run: flox build
 ```
 
+### Using substituters for caching
+
+You can have this action configure the substitutes for you. This will allow you to push build artifacts to a remote Nix store, and have subsequent builds substitute paths using that same store.
+
+See [nix help-stores] for more information on the supported URIs.
+
+[nix help-stores]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-help-stores.html
+
+The following example configures a S3 substituter, builds a package, and pushes the artifact to the substituter. Subsequent runs of this workflow will use the substituted path, instead of building it again.
+
+```yml
+name: "Build, push and use substituters"
+
+on:
+  push:
+
+jobs:
+  substituter-build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install flox
+      uses: flox/install-flox-action@testing
+      with:
+        github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
+        substituter: s3://your-cache-here # see `nix help-stores` for supported uris
+        substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Build
+      run: |
+        flox nix build --json -L --print-out-paths nixpkgs#hello
+
+    - name: Cache
+      run: |
+        flox nix copy --to "$FLOX_SUBSTITUTER" -v nixpkgs#hello
+```
+
 ## 📫 Have a question? Want to chat? Ran into a problem?
 
 We are happy to welcome you to our [Discourse forum][discourse] and answer your
