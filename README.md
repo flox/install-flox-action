@@ -86,13 +86,13 @@ Caching with flox can be achieved by configuring what is known as
 `substituter`.
 
 You can see in an example below how to configure your GitHub workflow to **push
-build artifacts** to a remote location. In the case of this example it is AWS
-S3 Bucket. 
+build artifacts** to a remote location. In the case of this example it is an
+AWS S3 Bucket. 
 
-With cache configured all subsequent builds will be faster since flox does not
-have to build them again.
+With caching configured all subsequent builds will be faster since flox does
+not have to build them again.
 
-For [nix help-stores][nix-help-stores] for more information on the supported
+See [nix help-stores][nix-help-stores] for more information on the supported
 URIs.
 
 ```yml
