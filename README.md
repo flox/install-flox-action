@@ -54,7 +54,7 @@ environments**. flox builds on top of the powerful ideas of [Nix][nix-website]
 as well as making them accessible to everybody.
 
 
-## 🚀 Getting Started
+## ⭐ Getting Started
 
 Create `.github/workflows/ci.yml` in your repo with the following contents:
 
@@ -74,30 +74,35 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install flox
-      uses: flox/install-flox-action@v1.0.0
+      uses: flox/install-flox-action@v1
 
     - name: Build
       run: flox build
 ```
 
-### Using substituters for caching
+### 🚀 Add caching for faster CI
 
-You can have this action configure the substitutes for you. This will allow you to push build artifacts to a remote Nix store, and have subsequent builds substitute paths using that same store.
+Caching with flox can be achieved by configuring what is known as
+`substituter`.
 
-See [nix help-stores] for more information on the supported URIs.
+You can see in an example below how to configure your GitHub workflow to **push
+build artifacts** to a remote location. In the case of this example it is an
+AWS S3 Bucket. 
 
-[nix help-stores]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-help-stores.html
+With caching configured all subsequent builds will be faster since flox does
+not have to build them again.
 
-The following example configures a S3 substituter, builds a package, and pushes the artifact to the substituter. Subsequent runs of this workflow will use the substituted path, instead of building it again.
+See [nix help-stores][nix-help-stores] for more information on the supported
+URIs.
 
 ```yml
-name: "Build, push and use substituters"
+name: "CI"
 
 on:
   push:
 
 jobs:
-  substituter-build:
+  build:
     runs-on: ubuntu-latest
     steps:
 
@@ -105,9 +110,8 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install flox
-      uses: flox/install-flox-action@testing
+      uses: flox/install-flox-action@v1
       with:
-        github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
         substituter: s3://your-cache-here # see `nix help-stores` for supported uris
         substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -115,7 +119,7 @@ jobs:
 
     - name: Build
       run: |
-        flox nix build --json -L --print-out-paths nixpkgs#hello
+        flox build nixpkgs#hello
 
     - name: Cache
       run: |
@@ -150,3 +154,4 @@ The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
 [matrix]: https://matrix.to/#/#flox:matrix.org
 [discord]: https://discord.gg/5H7hN57eQR
 [nix-website]: https://nixos.org
+[nix-help-stores]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-help-stores.html
