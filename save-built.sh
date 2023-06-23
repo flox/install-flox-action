@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# We want to save flox itself always, and ensure the file exists
-echo "$(readlink -f "$(which flox)")" >> /tmp/built-derivations
+function badly_fix_perms() {
+	sudo chown -R "$(id -u):$(id -g)" "$1" || :
+	chown -R "$(id -u):$(id -g)" "$1" || :
+	sudo chmod -R ugo+rwX "$1" || :
+	chmod -R ugo+rwX "$1" || :
+}
 
-echo "Deduplicating built derivations"
-LINES="$(cat /tmp/built-derivations)"
-echo "$LINES" | sort | uniq | sed '/^$/d' > /tmp/built-derivations
+P="${RUNNER_TEMP:-/tmp}/built-paths"
+
+badly_fix_perms "$P"
+
+echo "Deduplicating $(wc -l < "$P") built derivations"
+LINES=$(cat "$P")
+echo "$LINES" | sort | uniq | sed '/^$/d' > "$P"
 
 echo "Using these built paths:"
-cat /tmp/built-derivations
+cat "$P"
 
-echo "Collecting dependencies..."
+mkdir -p "/tmp/nixcache"
 
-ALL_PATHS=()
+badly_fix_perms "/tmp/nixcache"
+echo "Starting copy"
+nix copy --to "file:///tmp/nixcache?priority=10" $(tr '\n' ' ' < "$P")
+badly_fix_perms "/tmp/nixcache"
 
-while read -r BUILT_OUT_PATH; do
-    ALL_PATHS+=("$BUILT_OUT_PATH")
-    while read DEP_PATH; do
-        ALL_PATHS+=("$DEP_PATH")
-    done < <(nix-store -qR "$BUILT_OUT_PATH")
-done < /tmp/built-derivations
-
-echo "Saving these paths to the cache:"
-echo "${ALL_PATHS[@]}"
-
-nix-store --export "${ALL_PATHS[@]}" > /tmp/nixcache

@@ -36,18 +36,61 @@ runs:
   using: "composite"
 
   steps:
+    - name: "Create Nix store cache"
+      uses: "actions/cache@v3.0.8"
+      id: "nix-cache"
+      if: "inputs.cache-key != ''"
+      with:
+        path: "/tmp/nixcache"
+        key: "ver_2_${{ inputs.cache-key }}"
+
+    - name: "Generating Nix config"
+      shell: bash
+      id: make_nix_config
+      env:
+        INPUT_SUBSTITUTER: "${{ inputs.substituter }}"
+        INPUT_USE_LOCAL_CACHE: 1 # TODO if cache key
+      run: |
+        echo "out<<EOF" >> "$GITHUB_OUTPUT"
+
+        {
+        cat <<EOF
+        experimental-features = nix-command flakes
+        max-jobs = auto
+        cores = 0
+        builders-use-substitutes = true
+        fallback = true
+        connect-timeout = 5
+        stalled-download-timeout = 90
+        EOF
+        } >> "$GITHUB_OUTPUT"
+
+        SUBSTITUTERS=()
+
+        if [ "${INPUT_USE_LOCAL_CACHE}" = "1" ]; then
+          SUBSTITUTERS+=("file:///tmp/nixcache?trusted=1")
+          echo "post-build-hook = ${{ github.action_path }}write-built.sh" >> "$GITHUB_OUTPUT"
+          # so nix-daemon knows where the temp dir is, used for saving store paths
+          sudo systemctl import-environment RUNNER_TEMP
+          # ensure it works, and make the file exist
+          ${{ github.action_path }}/write-built.sh
+        fi
+
+        if [ -n "${INPUT_SUBSTITUTER}" ]; then
+          SUBSTITUTERS+=("${INPUT_SUBSTITUTER}")
+        fi
+
+        if [ -n "${SUBSTITUTERS}" ]; then
+          echo "extra-substituters = ${SUBSTITUTERS[@]}" >> "$GITHUB_OUTPUT"
+        fi
+
+        echo "EOF" >> "$GITHUB_OUTPUT"
+
     - uses: "cachix/install-nix-action@v21"
       if: "inputs.existing_nix != 'true'"
       with:
         github_access_token: "${{ inputs.github-access-token }}"
-        extra_nix_config: |
-          experimental-features = nix-command flakes
-          max-jobs = auto
-          cores = 0
-          builders-use-substitutes = true
-          fallback = true
-          connect-timeout = 5
-          stalled-download-timeout = 90
+        extra_nix_config: "${{ steps.make_nix_config.outputs.out }}"
 
     - name: "Fix Nix credentials"
       shell: "bash"
@@ -58,25 +101,11 @@ runs:
         INPUTS_SSH_AUTH_SOCK: "${{ inputs.ssh-auth-sock }}"
         INPUTS_GITHUB_ACCESS_TOKEN: "${{ inputs.github-access-token }}"
 
-    - name: "Create Nix store cache"
-      uses: "actions/cache@v3.0.8"
-      id: "nix-cache"
-      if: "inputs.cache-key != ''"
-      with:
-        path: "/tmp/nixcache"
-        key: "${{ inputs.cache-key }}"
-
-    - name: "Import Nix store cache"
-      if: "steps.nix-cache.outputs.cache-hit == 'true'"
-      shell: "bash"
-      run: |
-        nix-store --import < /tmp/nixcache
-
     - name: "Install flox"
       shell: "bash"
       run: "${{ github.action_path }}/install-flox.sh"
 
-    - name: "Setup substituter"
+    - name: "Setup substituter credentials"
       if: "inputs.substituter != ''"
       shell: "bash"
       run: "${{ github.action_path }}/configure-substituter.sh"
@@ -87,23 +116,19 @@ runs:
         INPUT_AWS_ACCESS_KEY_ID: "${{ inputs.aws-access-key-id }}"
         INPUT_AWS_SECRET_ACCESS_KEY: "${{ inputs.aws-secret-access-key }}"
 
-
-    - name: "Enable using Nix post-build-hook on each built path"
-      if: "inputs.post-build-hook != ''"
-      shell: "bash"
-      run: |
-        echo '${{ inputs.post-build-hook }}' | sudo tee -a /tmp/post-build-hook
-        echo "post-build-hook = /etc/nix/post-build-hook" | sudo tee -a /etc/nix/nix.conf
-        sudo chmod +x /tmp/post-build-hook
-
     - name: "Enable exporting Nix store to cache"
       if: "inputs.cache-key != ''"
       shell: "bash"
       run: |
-        echo "post-build-hook = ${{ github.action_path }}/write-built.sh" | sudo tee -a /etc/nix/nix.conf
         mkdir -p "$HOME/.local/bin"
         cp '${{ github.action_path }}/save-built.sh' "$HOME/.local/bin/save-built"
-        echo "PATH='$PATH:$HOME/.local/bin'" > "$GITHUB_ENV"
+        cp '${{ github.action_path }}/write-built.sh' "$HOME/.local/bin/write-built"
+
+        echo "PATH='$PATH:$HOME/.local/bin'" >> "$GITHUB_ENV"
+        echo "$HOME/.local/bin" > "$GITHUB_PATH"
 
         # Run this at the start to make sure the cache works, and to get flox itself cached
+        ${{ github.action_path }}/write-built.sh "$(readlink -f "$(which flox)")"
         ${{ github.action_path }}/save-built.sh
+
+

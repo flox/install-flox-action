@@ -19,51 +19,52 @@ jobs:
         with:
           cache-key: "install-flox-action-test"
 
+      - name: "Build hello"
+        shell: "bash"
+        run: "nix build nixpkgs#hello"
+
       - shell: "bash"
         run: "save-built"
 
   simple-cache-test:
-    name: simple-build ${{ matrix.package }}
+    name: simple-cache-test ${{ matrix.package }}
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         include:
-          - package: nixpkgs#hello
-          - package: nixpkgs#jq
+          - package: hello
+          - package: jq
 
     steps:
       - uses: "actions/checkout@v3"
       - name: Install flox
         uses: "./"
         with:
-          substituter: "file://${{ runner.temp }}/nixcache"
-          substituter-options: ""
-          # NOTE: This should be coming from the secrets conext.
-          # We're using the testing-only key here for testing purposes only!
-          # See for https://docs.github.com/en/actions/learn-github-actions/contexts#secrets-context more info.
-          substituter-key: "testing-only:77peiBuSA5nrF81iUqmWef67KajfGpzqcqPOIfz/qyrJQMaV5w7xdt8VCKrThI7Eu0T94shSuAj1ferF78bpww=="
+          cache-key: "install-flox-action-simple-cache-test-${{ matrix.package }}"
+
+      # slows this test down, allows us to test behavior with and without the cache
+      - name: Clean cache
+        run: |
+          sudo rm -rf /tmp/nixcache
 
       - name: Build
         run: |
-          flox nix build --json -L --print-out-paths ${{ matrix.package }}
+          nix build --json -L --print-out-paths --impure --expr 'with builtins; with getFlake "nixpkgs"; legacyPackages."${currentSystem}"."${{ matrix.package }}".overrideAttrs (oldAttrs: { pname = oldAttrs.pname + "-unique"; })'
+          write-built $(readlink ./result*)
+
+      - name: Cache
+        run: |
+          save-built
 
       - name: Clean results
         run: |
           rm -rf result*
 
-      - name: Clean cache
-        run: |
-          sudo rm -rf ${{ runner.temp }}/nixcache
-
-      - name: Cache
-        run: |
-          flox nix copy --to "$FLOX_SUBSTITUTER" -vv ${{ matrix.package }}
-
       - name: Collect garbage
         run: |
-          flox nix store gc
+          nix store gc
 
       - name: Build with caching
         run: |
-          flox nix build -j0 --json -L --print-out-paths ${{ matrix.package }}
+          nix build -j0 --json -L --print-out-paths --impure --expr 'with builtins; with getFlake "nixpkgs"; legacyPackages."${currentSystem}"."${{ matrix.package }}".overrideAttrs (oldAttrs: { pname = oldAttrs.pname + "-unique"; })'
