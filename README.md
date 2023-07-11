@@ -74,7 +74,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install flox
-      uses: flox/install-flox-action@v1
+      uses: flox/install-flox-action@v1.1.0
 
     - name: Build
       run: flox build
@@ -110,7 +110,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install flox
-      uses: flox/install-flox-action@v1
+      uses: flox/install-flox-action@v1.1.0
       with:
         substituter: s3://your-cache-here # see `nix help-stores` for supported uris
         substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
@@ -141,7 +141,7 @@ For example to use `flox` from a particular `floxpkgs` revision you could set
 jobs:
 # ...<SNIP>...
     - name: Install flox
-      uses: flox/install-flox-action@v1
+      uses: flox/install-flox-action@v1.1.0
       with:
         floxpkgs-uri: "github:flox/floxpkgs/7df34f186e0a93cc45f8d08c85705c2e18f2ef10"
 ```
@@ -154,7 +154,7 @@ package (useful for working on development builds) with the following:
 jobs:
 # ...<SNIP>...
     - name: Install flox
-      uses: flox/install-flox-action@v1
+      uses: flox/install-flox-action@v1.1.0
       with:
         # For a local checkout:
         flox-installable-uri: ".#flox"
