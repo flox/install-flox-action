@@ -154,7 +154,10 @@ jobs:
     - name: Install flox
       uses: flox/install-flox-action@v1
       with:
+        # For a local checkout:
         flox-installable-uri: ".#flox"
+        # For the pre-release:
+        flox-installable-uri: "github:flox/floxpkgs#flox-prerelease.fromCatalog"
 ```
 
 ## 📫 Have a question? Want to chat? Ran into a problem?
