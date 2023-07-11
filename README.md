@@ -129,8 +129,10 @@ jobs:
 ## Use an alternative `flox` executable
 
 You can override the default (latest stable release) executable for `flox`
-by providing explicit URIs for either an alternative `floxpkgs` flake or
-`flox` installable URI.
+by providing explicit URIs for either an alternative `floxpkgs` 
+[flake](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake.html#url-like-syntax)
+or `flox`
+[installable URI](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix.html#installables).
 
 For example to use `flox` from a particular `floxpkgs` revision you could set
 
