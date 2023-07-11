@@ -145,7 +145,7 @@ jobs:
 ```
 
 Alternatively you can provide an installable URI for an alternative `flox`
-package ( useful for working on development builds ) with the following:
+package (useful for working on development builds) with the following:
 
 ```yml
 # ...<SNIP>...
