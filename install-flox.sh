@@ -2,20 +2,25 @@
 set -euo pipefail
 
 if ! type -p nix &>/dev/null ; then
-  echo "Aborting: Nix is not installed, please configure nix using https://github.com/marketplace/actions/install-nix"
+  printf '%s' "Aborting: Nix is not installed, please configure nix using "  \
+              "https://github.com/marketplace/actions/install-nix"
   exit
 fi
 
-# GitHub command to put the following log messages into a group which is collapsed by default
+# GitHub command to put the following log messages into a group which is
+# collapsed by default
 echo "::group::Installing Flox"
+
+: "${FLOXPKGS_URI:=github:flox/floxpkgs}"
+: "${FLOX_INSTALLABLE_URI:=$FLOXPKGS_URI#flox.fromCatalog}"
 
 nix profile install --impure \
       --experimental-features "nix-command flakes" \
       --accept-flake-config \
-      'github:flox/floxpkgs#flox.fromCatalog'
+      "$FLOX_INSTALLABLE_URI"
 
 # Check it runs
-$HOME/.nix-profile/bin/flox --version
+"$HOME/.nix-profile/bin/flox" --version
 
 # This might already be set e.g. if Nix was installed using install-nix-action.
 # If Nix was already installed through other means (e.g. on a hosted runner)
