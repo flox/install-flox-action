@@ -128,7 +128,7 @@ jobs:
 
 ## Use an alternative `flox` executable
 
-You can override the default ( latest stable release ) executable for `flox`
+You can override the default (latest stable release) executable for `flox`
 by providing explicit URIs for either an alternative `floxpkgs` flake or
 `flox` installable URI.
 
