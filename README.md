@@ -126,6 +126,37 @@ jobs:
         flox nix copy --to "$FLOX_SUBSTITUTER" -v nixpkgs#hello
 ```
 
+## Use an alternative `flox` executable
+
+You can override the default ( latest stable release ) executable for `flox`
+by providing explicit URIs for either an alternative `floxpkgs` flake or
+`flox` installable URI.
+
+For example to use `flox` from a particular `floxpkgs` revision you could set
+
+```yml
+# ...<SNIP>...
+jobs:
+# ...<SNIP>...
+    - name: Install flox
+      uses: flox/install-flox-action@v1
+      with:
+        floxpkgs-uri: "github:flox/floxpkgs/7df34f186e0a93cc45f8d08c85705c2e18f2ef10"
+```
+
+Alternatively you can provide an installable URI for an alternative `flox`
+package ( useful for working on development builds ) with the following:
+
+```yml
+# ...<SNIP>...
+jobs:
+# ...<SNIP>...
+    - name: Install flox
+      uses: flox/install-flox-action@v1
+      with:
+        flox-installable-uri: ".#flox"
+```
+
 ## 📫 Have a question? Want to chat? Ran into a problem?
 
 We are happy to welcome you to our [Discourse forum][discourse] and answer your

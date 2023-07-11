@@ -31,6 +31,17 @@ inputs:
     description: "AWS access key to upload"
   aws-secret-access-key:
     description: "AWS secret key to upload"
+  floxpkgs-uri:
+    description: |
+      URI to use when resolving `flox` executable.
+      Ignored if `flox-installable-uri` is given.
+    default: "github:flox/floxpkgs"
+  flox-installable-uri:
+    required: false
+    description: |
+      Absolute installable URI to `flox` executable.
+      Takes precedence over `floxpkgs-uri` setting.
+
 
 runs:
   using: "composite"
@@ -74,6 +85,9 @@ runs:
 
     - name: "Install flox"
       shell: "bash"
+      env:
+        FLOXPKGS_URI: "${{ inputs.floxpkgs-uri }}"
+        FLOX_INSTALLABLE_URI: "${{ inputs.flox-installable-uri }}"
       run: "${{ github.action_path }}/install-flox.sh"
 
     - name: "Setup substituter"
