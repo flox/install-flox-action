@@ -31,7 +31,7 @@ git config --global user.name || git config --global user.name "flox User"
 
 # Allows `builtins.fetch{url,Tarball}' and related to work:
 mkdir -p "$HOME/.config/nix";
-echo "machine api.github.com password $INPUTS_GITHUB_ACCESS_TOKEN" > "$HOME/.netrc";
+echo "machine api.github.com password $INPUTS_GITHUB_ACCESS_TOKEN" >> "$HOME/.netrc";
 echo "machine pkgs.github.com password $INPUTS_GITHUB_ACCESS_TOKEN" >> "$HOME/.netrc";
 echo "machine github.com password $INPUTS_GITHUB_ACCESS_TOKEN" >> "$HOME/.netrc";
 ln -sr "$HOME/.netrc" "$HOME/.config/nix/netrc";
