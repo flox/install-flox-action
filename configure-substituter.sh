@@ -31,7 +31,15 @@ printf "%s\n" \
 
 echo "Restarting the Nix daemon"
 
-sudo systemctl daemon-reload
-sudo systemctl restart nix-daemon.service
+if [[ "$RUNNER_OS" == "Linux" ]]; then
+	sudo systemctl daemon-reload
+	sudo systemctl restart nix-daemon.service
+elif [[ "$RUNNER_OS" == "macOS" ]]; then
+	sudo launchctl stop org.nixos.nix-daemon
+	sudo launchctl start org.nixos.nix-daemon
+else
+	echo "Unsupported OS: $RUNNER_OS"
+	exit 1
+fi
 
 echo "::endgroup::"

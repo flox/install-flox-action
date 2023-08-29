@@ -117,7 +117,7 @@ runs:
         echo "post-build-hook = ${{ github.action_path }}/write-built.sh" | sudo tee -a /etc/nix/nix.conf
         mkdir -p "$HOME/.local/bin"
         cp '${{ github.action_path }}/save-built.sh' "$HOME/.local/bin/save-built"
-        echo "PATH='$PATH:$HOME/.local/bin'" > "$GITHUB_ENV"
+        echo "PATH=$PATH:$HOME/.local/bin" > "$GITHUB_ENV"
 
         # Run this at the start to make sure the cache works, and to get flox itself cached
         ${{ github.action_path }}/save-built.sh
