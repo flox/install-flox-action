@@ -47,7 +47,7 @@ runs:
   using: "composite"
 
   steps:
-    - uses: "cachix/install-nix-action@v21"
+    - uses: "cachix/install-nix-action@v22"
       if: "inputs.existing_nix != 'true'"
       with:
         github_access_token: "${{ inputs.github-access-token }}"
