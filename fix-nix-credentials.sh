@@ -22,7 +22,7 @@ if [ -n "$INPUTS_SSH_AUTH_SOCK" ]; then
 fi
 
 nohup ssh-agent -D > .ssh-agent-out &
-eval "$(tail -f .ssh-agent-out | sed '/echo Agent pid/ q')"
+eval "$( (tail -f .ssh-agent-out &) | sed '/echo Agent pid/ q')"
 
 echo "SSH_AUTH_SOCK='$SSH_AUTH_SOCK'" > "$GITHUB_ENV"
 
