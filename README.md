@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://floxdev.com" target="_blank">
+  <a href="https://flox.dev" target="_blank">
     <picture>
       <source media="(prefers-color-scheme: dark)"  srcset="img/flox_orange_small.png" />
       <source media="(prefers-color-scheme: light)" srcset="img/flox_blue_small.png" />
@@ -24,11 +24,11 @@
 
 <h3 align="center">
    &emsp;
-   <a href="https://discourse.floxdev.com"><b>Discourse</b></a>
+   <a href="https://discourse.flox.dev"><b>Discourse</b></a>
    &emsp; | &emsp; 
-   <a href="https://floxdev.com/docs"><b>Documentation</b></a>
+   <a href="https://flox.dev/docs"><b>Documentation</b></a>
    &emsp; | &emsp; 
-   <a href="https://floxdev.com/blog"><b>Blog</b></a>
+   <a href="https://flox.dev/blog"><b>Blog</b></a>
    &emsp; | &emsp;  
    <a href="https://twitter.com/floxdevelopment"><b>Twitter</b></a>
    &emsp;
@@ -183,9 +183,9 @@ The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
 
 
 [flox-github]: https://github.com/flox/flox 
-[flox-website]: https://floxdev.com
+[flox-website]: https://flox.dev
 [new-issue]: https://github.com/flox/install-flox-action/issues/new/choose
-[discourse]: https://discourse.floxdev.com
+[discourse]: https://discourse.flox.dev
 [twitter]: https://twitter.com/floxdevelopment
 [matrix]: https://matrix.to/#/#flox:matrix.org
 [discord]: https://discord.gg/5H7hN57eQR
