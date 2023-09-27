@@ -22,7 +22,7 @@ if [ -n "$INPUTS_SSH_AUTH_SOCK" ]; then
 fi
 
 nohup ssh-agent -D > .ssh-agent-out &
-eval "$(tail -f .ssh-agent-out | sed '/echo Agent pid/ q')"
+eval "$( (tail -f .ssh-agent-out &) | sed '/echo Agent pid/ q')"
 
 echo "SSH_AUTH_SOCK='$SSH_AUTH_SOCK'" > "$GITHUB_ENV"
 
@@ -34,7 +34,7 @@ mkdir -p "$HOME/.config/nix";
 echo "machine api.github.com password $INPUTS_GITHUB_ACCESS_TOKEN" >> "$HOME/.netrc";
 echo "machine pkgs.github.com password $INPUTS_GITHUB_ACCESS_TOKEN" >> "$HOME/.netrc";
 echo "machine github.com password $INPUTS_GITHUB_ACCESS_TOKEN" >> "$HOME/.netrc";
-ln -sr "$HOME/.netrc" "$HOME/.config/nix/netrc";
+ln -s "$HOME/.netrc" "$HOME/.config/nix/netrc";
 
 # Close the log message group which was opened above
 echo "::endgroup::"

@@ -10,7 +10,7 @@ jobs:
   simple-build:
     strategy:
       matrix:
-        os: ["ubuntu-latest"] # macos not yet populated
+        os: ["ubuntu-latest", "macos-latest"]
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: "actions/checkout@v3"
@@ -23,11 +23,11 @@ jobs:
         run: "save-built"
 
   simple-cache-test:
-    name: simple-build ${{ matrix.package }}
-    runs-on: ubuntu-latest
+    runs-on: "${{ matrix.os }}"
 
     strategy:
       matrix:
+        os: ["ubuntu-latest", "macos-latest"]
         include:
           - package: nixpkgs#hello
           - package: nixpkgs#jq

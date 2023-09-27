@@ -10,7 +10,7 @@ jobs:
   install-flox-pre-release:
     strategy:
       matrix:
-        os: ["ubuntu-latest"] # macos not yet populated
+        os: ["ubuntu-latest", "macos-latest"]
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: "actions/checkout@v3"
