@@ -41,6 +41,14 @@ inputs:
     description: |
       Absolute installable URI to `flox` executable.
       Takes precedence over `floxpkgs-uri` setting.
+  nix_install_url:
+    description: |
+      URL for the `nix` installer to use.
+      This allows you to select alternative `nix` versions
+      from the list at https://releases.nixos.org/nix/.
+      To use the _latest_ stable release you may set this to
+      https://nixos.org/nix/install.
+    default: 'https://releases.nixos.org/nix/nix-2.15.2/install'
 
 
 runs:
@@ -50,6 +58,7 @@ runs:
     - uses: "cachix/install-nix-action@v22"
       if: "inputs.existing_nix != 'true'"
       with:
+        install_url: ${{ inputs.nix_install_url }}
         github_access_token: "${{ inputs.github-access-token }}"
         extra_nix_config: |
           experimental-features = nix-command flakes
