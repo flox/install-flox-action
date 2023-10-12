@@ -1,0 +1,52 @@
+# In JavaScript actions, `dist/index.js` is a special file. When you reference
+# an action with `uses:`, `dist/index.js` is the code that will be run. For this
+# project, the `dist/index.js` file is generated from other source files through
+# the build process. We need to make sure that the checked-in `dist/index.js`
+# file matches what is expected from the build.
+#
+# This workflow will fail if the checked-in `dist/index.js` file does not match
+# what is expected from the build.
+name: "Update dist/index.js"
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+jobs:
+  check-dist:
+    name: "Check dist/"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      statuses: write
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Install Nix"
+        uses: cachix/install-nix-action@v22
+
+      - name: "Install Dependencies"
+        run: nix develop --command npm ci
+
+      - name: "Build dist/ Directory"
+        run: nix develop --command npm run all
+
+      - name: "Compare Expected and Actual Directories"
+        id: diff
+        run: git status
+
+      - name: "Commit changes"
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          file_pattern: "dist/index.js badges/coverage.svg"
+          commit_message: "chore(deps): Update dist/"
