@@ -37,7 +37,7 @@ export const SCRIPTS = {
 export function exportVariableFromInput(input, defaultValue = '') {
   const name = `INPUT_${input.toUpperCase().replaceAll('-', '_')}`
   const value = core.getInput(input) || defaultValue
-  core.info(`Exporting variable ${name} to '${value}'`)
+  core.debug(`Exporting variable ${name} to '${value}'`)
   core.exportVariable(name, value)
   return value
 }
