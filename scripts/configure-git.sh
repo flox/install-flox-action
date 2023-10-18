@@ -17,3 +17,8 @@ echo "Set user.name and user.email if not set already"
 
 GIT_TRACE=1 git config --global user.name || GIT_TRACE=1 git config --global user.name "$INPUT_GIT_USER"
 GIT_TRACE=1 git config --global user.email || GIT_TRACE=1 git config --global user.email "$INPUT_GIT_EMAIL"
+
+echo "Set GIT_SSH to '$(which ssh)' to be explicit which ssh version is used"
+# TODO: is this a bug? we should be using the system version of ssh
+# https://github.com/NixOS/nixpkgs/issues/58132
+echo "GIT_SSH=$(which ssh)" >> "$GITHUB_ENV"

@@ -81545,18 +81545,18 @@ async function run() {
   }
   core.endGroup()
 
-  core.startGroup('Configure ssh')
-  const sshKey = utils.exportVariableFromInput('ssh-key')
+  core.startGroup('Configure Ssh')
   const sshKeyFormat = utils.exportVariableFromInput('ssh-key-format')
+  utils.exportVariableFromInput('ssh-key')
   utils.exportVariableFromInput('ssh-auth-sock')
-  if (sshKey && sshKeyFormat) {
+  if (sshKeyFormat) {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh])
   } else {
     core.debug(`Skip running '${utils.SCRIPTS.configureSsh}' script`)
   }
   core.endGroup()
 
-  core.startGroup('Configure substituter')
+  core.startGroup('Configure Substituter')
   const substituter = utils.exportVariableFromInput('substituter')
   const substituterKey = utils.exportVariableFromInput('substituter-key')
   utils.exportVariableFromInput('substituter-options')
