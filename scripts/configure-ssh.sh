@@ -21,9 +21,7 @@ mkdir -p "$HOME/.ssh"
 ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
 
 
-if [ -z "$INPUT_SSH_KEY" ]; then
-  ssh-keygen -q -N '' -t "$INPUT_SSH_KEY_FORMAT" -f "$HOME/.ssh/id_$INPUT_SSH_KEY_FORMAT"
-else
+if [ -n "$INPUT_SSH_KEY" ]; then
   touch "$HOME/.ssh/id_$INPUT_SSH_KEY_FORMAT"
   chmod 600 "$HOME/.ssh/id_$INPUT_SSH_KEY_FORMAT"
   echo "$INPUT_SSH_KEY" > "$HOME/.ssh/id_$INPUT_SSH_KEY_FORMAT"
