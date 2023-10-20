@@ -21,7 +21,7 @@ export async function run() {
   if (githubAccessToken) {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureGithub])
   } else {
-    core.debug(`Skip running '${utils.SCRIPTS.configureGithub}' script`)
+    core.info(`Skip running '${utils.SCRIPTS.configureGithub}' script`)
   }
   core.endGroup()
 
@@ -32,7 +32,7 @@ export async function run() {
   if (sshKeyFormat) {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh])
   } else {
-    core.debug(`Skip running '${utils.SCRIPTS.configureSsh}' script`)
+    core.info(`Skip running '${utils.SCRIPTS.configureSsh}' script`)
   }
   core.endGroup()
 
@@ -43,7 +43,7 @@ export async function run() {
   if (substituter && substituterKey) {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureSubstituter])
   } else {
-    core.debug(`Skip running '${utils.SCRIPTS.configureSubstituter}' script`)
+    core.info(`Skip running '${utils.SCRIPTS.configureSubstituter}' script`)
   }
   core.endGroup()
 
@@ -55,7 +55,7 @@ export async function run() {
   if (awsAccessKeyId && awsSecretAccessKey) {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureAWS])
   } else {
-    core.debug(`Skip running '${utils.SCRIPTS.configureAWS}' script`)
+    core.info(`Skip running '${utils.SCRIPTS.configureAWS}' script`)
   }
   core.endGroup()
 
