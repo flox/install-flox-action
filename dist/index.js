@@ -82250,6 +82250,8 @@ async function run() {
     utils.GH_CACHE_RESTORE_KEYS.slice()
   )
   core.endGroup()
+
+  core.info('Are we done here???')
 }
 
 
