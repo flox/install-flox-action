@@ -82245,9 +82245,9 @@ async function run() {
 
   core.startGroup('Restore Nix Cache')
   const cacheKey = await cache.restoreCache(
-    utils.GH_CACHE_PATHS,
+    utils.GH_CACHE_PATHS.slice(),
     utils.GH_CACHE_KEY,
-    utils.GH_CACHE_RESTORE_KEYS
+    utils.GH_CACHE_RESTORE_KEYS.slice()
   )
   core.endGroup()
 }
