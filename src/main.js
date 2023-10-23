@@ -7,19 +7,23 @@ export async function run() {
   core.startGroup('Download & Install flox')
   const downloadUrl = await utils.getDownloadUrl(process.platform, process.arch)
   utils.exportVariableFromInput('download-url', downloadUrl)
-  await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
+  await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox], { detached: true })
   core.endGroup()
 
   core.startGroup('Configure Git')
   utils.exportVariableFromInput('git-user')
   utils.exportVariableFromInput('git-email')
-  await exec.exec('bash', ['-c', utils.SCRIPTS.configureGit])
+  await exec.exec('bash', ['-c', utils.SCRIPTS.configureGit], {
+    detached: true
+  })
   core.endGroup()
 
   core.startGroup('Configure Github')
   const githubAccessToken = utils.exportVariableFromInput('github-access-token')
   if (githubAccessToken) {
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureGithub])
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureGithub], {
+      detached: true
+    })
   } else {
     core.info(`Skip running '${utils.SCRIPTS.configureGithub}' script`)
   }
@@ -30,7 +34,9 @@ export async function run() {
   utils.exportVariableFromInput('ssh-key')
   utils.exportVariableFromInput('ssh-auth-sock')
   if (sshKeyFormat) {
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh])
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh], {
+      detached: true
+    })
   } else {
     core.info(`Skip running '${utils.SCRIPTS.configureSsh}' script`)
   }
@@ -41,7 +47,9 @@ export async function run() {
   const substituterKey = utils.exportVariableFromInput('substituter-key')
   utils.exportVariableFromInput('substituter-options')
   if (substituter && substituterKey) {
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSubstituter])
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSubstituter], {
+      detached: true
+    })
   } else {
     core.info(`Skip running '${utils.SCRIPTS.configureSubstituter}' script`)
   }
@@ -53,7 +61,9 @@ export async function run() {
     'aws-secret-access-key'
   )
   if (awsAccessKeyId && awsSecretAccessKey) {
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureAWS])
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureAWS], {
+      detached: true
+    })
   } else {
     core.info(`Skip running '${utils.SCRIPTS.configureAWS}' script`)
   }
@@ -64,7 +74,9 @@ export async function run() {
   core.endGroup()
 
   core.startGroup('Record Nix store paths')
-  await exec.exec('bash', ['-c', utils.SCRIPTS.recordNixStorePaths])
+  await exec.exec('bash', ['-c', utils.SCRIPTS.recordNixStorePaths], {
+    detached: true
+  })
   core.endGroup()
 
   core.startGroup('Restore Nix Cache')
