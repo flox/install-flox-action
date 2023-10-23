@@ -31,14 +31,8 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
     "Environment=AWS_SECRET_ACCESS_KEY=${INPUT_AWS_SECRET_ACCESS_KEY}" |
     sudo tee -a /etc/systemd/system/nix-daemon.service.d/aws-credentials.conf >/dev/null
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
-  sudo plutil \
-    -insert EnvironmentVariables.AWS_SECRET_ACCESS_KEY \
-    -string "$INPUT_AWS_SECRET_ACCESS_KEY" \
-      /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-  sudo plutil \
-    -insert EnvironmentVariables.AWS_ACCESS_KEY_ID \
-    -string "$INPUT_AWS_ACCESS_KEY_ID" \
-      /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+  sudo launchctl setenv AWS_SECRET_ACCESS_KEY "$INPUT_AWS_SECRET_ACCESS_KEY"
+  sudo launchctl setenv AWS_ACCESS_KEY_ID     "$INPUT_AWS_ACCESS_KEY_ID"
 fi
 
 
