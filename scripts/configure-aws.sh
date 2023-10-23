@@ -23,12 +23,17 @@ echo "Populating the environment with AWS's credentials..."
 
 echo "Making the Nix daemon aware of the AWS credentials..."
 
-sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
-printf "%s\n" \
-  '[Service]' \
-  "Environment=AWS_ACCESS_KEY_ID=${INPUT_AWS_ACCESS_KEY_ID}" \
-  "Environment=AWS_SECRET_ACCESS_KEY=${INPUT_AWS_SECRET_ACCESS_KEY}" |
-  sudo tee -a /etc/systemd/system/nix-daemon.service.d/aws-credentials.conf >/dev/null
+if [[ "$RUNNER_OS" == "Linux" ]]; then
+  sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
+  printf "%s\n" \
+    '[Service]' \
+    "Environment=AWS_ACCESS_KEY_ID=${INPUT_AWS_ACCESS_KEY_ID}" \
+    "Environment=AWS_SECRET_ACCESS_KEY=${INPUT_AWS_SECRET_ACCESS_KEY}" |
+    sudo tee -a /etc/systemd/system/nix-daemon.service.d/aws-credentials.conf >/dev/null
+elif [[ "$RUNNER_OS" == "macOS" ]]; then
+  sudo plutil -insert EnvironmentVariables.AWS_SECRET_ACCESS_KEY -string "$AWS_SECRET_ACCESS_KEY" /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+  sudo plutil -insert EnvironmentVariables.AWS_ACCESS_KEY_ID -string "$AWS_ACCESS_KEY_ID" /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+fi
 
 
 echo "Restarting the Nix daemon..."
