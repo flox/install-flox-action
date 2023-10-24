@@ -23,7 +23,21 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
   NEW_STORE_PATHS_FILE_COUNT="$(wc -l "$NEW_STORE_PATHS_FILE"|cut -w -f2)";
 fi
-echo "New paths $NEW_STORE_PATHS_FILE_COUNT that will be pushed";
+echo "$NEW_STORE_PATHS_FILE_COUNT new paths will be pushed";
+
+echo "\n\n"
+echo "========================================================================"
+echo "========================================================================"
+echo "========================================================================"
+echo "\n\n"
+
+cat "#NEW_STORE_PATHS_FILE"
+
+echo "\n\n"
+echo "========================================================================"
+echo "========================================================================"
+echo "========================================================================"
+echo "\n\n"
 
 # Allow pushing to fail.
 cat "$NEW_STORE_PATHS_FILE" | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" -vv --stdin ||:;
