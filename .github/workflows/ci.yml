@@ -77,6 +77,8 @@ jobs:
 
       - name: "Test Local Action"
         uses: ./
+        with:
+          github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
 
       - name: "Build Example"
         env:
