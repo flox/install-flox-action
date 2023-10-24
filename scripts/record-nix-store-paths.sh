@@ -12,5 +12,5 @@ echo "STORE_PATHS_FILE=$STORE_PATHS_FILE" >> "$GITHUB_ENV";
 find "$NIX_STORE_DIR" -maxdepth 1 -mindepth 1 -type d -o -type l  \
   |sort > "$STORE_PATHS_FILE";
 
-STORE_PATHS_FILE_COUNT="$(wc -l "$STORE_PATHS_FILE"|cut -d' ' -f1)";
+STORE_PATHS_FILE_COUNT="$(wc -l "$STORE_PATHS_FILE"|cut -w -f2)";
 echo "Recorded $STORE_PATHS_FILE_COUNT paths";
