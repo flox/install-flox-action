@@ -34,6 +34,7 @@ elif [[ "$RUNNER_OS" == "macOS" ]]; then
   sudo launchctl setenv AWS_SECRET_ACCESS_KEY "$INPUT_AWS_SECRET_ACCESS_KEY"
   sudo launchctl setenv AWS_ACCESS_KEY_ID     "$INPUT_AWS_ACCESS_KEY_ID"
   sudo launchctl setenv NIX_SSL_CERT_FILE     "$(sudo plutil -extract EnvironmentVariables.NIX_SSL_CERT_FILE raw /Library/LaunchDaemons/org.nixos.nix-daemon.plist)"
+  sudo launchctl setenv SSL_CERT_FILE     "$(sudo plutil -extract EnvironmentVariables.NIX_SSL_CERT_FILE raw /Library/LaunchDaemons/org.nixos.nix-daemon.plist)"
 fi
 
 
