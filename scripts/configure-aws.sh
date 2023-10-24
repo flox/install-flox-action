@@ -47,6 +47,7 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
   sudo systemctl daemon-reload
   sudo systemctl restart nix-daemon.service
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
+  # for some reason running this twice restarts the service
   sudo launchctl kickstart -k -p system/org.nixos.nix-daemon
   sudo launchctl kickstart -k -p system/org.nixos.nix-daemon
 else
