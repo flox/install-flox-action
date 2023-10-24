@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches:
-      - "next-next"
       - "main"
       - "releases/*"
   schedule:
@@ -66,7 +65,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "macos-latest"
+          - "macos-13"
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
