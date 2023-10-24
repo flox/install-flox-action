@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches:
-      - "next-next"
       - "main"
       - "releases/*"
   schedule:
