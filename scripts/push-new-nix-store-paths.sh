@@ -18,7 +18,12 @@ find "$NIX_STORE_DIR" -maxdepth 1 -mindepth 1 -type d -o -type l | sort > "$STOR
 
 NEW_STORE_PATHS_FILE="$( mktemp; )";
 comm -13 "$STORE_PATHS_FILE" "$STORE_PATHS_FILE2" > "$NEW_STORE_PATHS_FILE";
-echo "New paths $(wc -l "$NEW_STORE_PATHS_FILE"|cut -d' ' -f1) that will be pushed";
+if [[ "$RUNNER_OS" == "Linux" ]]; then
+  NEW_STORE_PATHS_FILE_COUNT="$(wc -l "$NEW_STORE_PATHS_FILE"|cut -d' ' -f1)";
+elif [[ "$RUNNER_OS" == "macOS" ]]; then
+  NEW_STORE_PATHS_FILE_COUNT="$(wc -l "$NEW_STORE_PATHS_FILE"|cut -w -f2)";
+fi
+echo "New paths $NEW_STORE_PATHS_FILE_COUNT that will be pushed";
 
 # Allow pushing to fail.
-cat "$NEW_STORE_PATHS_FILE" | xargs -r nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" -vv||:;
+cat "$NEW_STORE_PATHS_FILE" | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" -vv --stdin ||:;
