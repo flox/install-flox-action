@@ -1,0 +1,126 @@
+name: "CI"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+      - "releases/*"
+  schedule:
+    - cron: '20 2 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  test-javascript:
+    name: "JavaScript Tests"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "macos-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Install Nix"
+        uses: cachix/install-nix-action@v22
+
+      - name: "Cache Dependencies"
+        id: cache
+        uses: actions/cache@v3
+        with:
+          key: npm-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
+          path: ./node_modules
+          restore-keys: |
+            npm-feature-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
+            npm-feature-${{ matrix.os }}-
+            npm-feature-
+            npm-
+
+      - name: "Install Dependencies"
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: nix develop --command npm ci
+
+      - name: "Check Format"
+        run: nix develop --command npm run format:check
+
+      - name: "Lint"
+        run: nix develop --command npm run lint
+
+      - name: "Test"
+        run: nix develop --command npm run ci-test
+
+  test-minimal-action:
+    name: "Minimal - Github Action Test"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "macos-latest"
+        # TODO: test with different flox versions
+        #flox-version:
+        #  - stable
+        #  - prerelease
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Test Local Action"
+        uses: ./
+        with:
+          github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
+
+      - name: "Build Example"
+        env:
+          # XXX: This is needed until we are in this limbo state and our "new" ui is
+          # not ready yet
+          FLOX_BASH_PASSTHRU: true
+        run: |
+          cd example
+          flox build --no-write-lock-file
+
+  test-all-action:
+    name: "All - Github Action Test"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "macos-latest"
+        # TODO: test with different flox versions
+        #flox-version:
+        #  - stable
+        #  - prerelease
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Test Local Action"
+        uses: ./
+        with:
+          github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
+          substituter: s3://flox-store
+          substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: "Build Example"
+        env:
+          # XXX: This is needed until we are in this limbo state and our "new" ui is
+          # not ready yet
+          FLOX_BASH_PASSTHRU: true
+        run: |
+          cd example
+          flox build --no-write-lock-file

@@ -1,0 +1,15 @@
+diff --git a/node_modules/@actions/exec/lib/toolrunner.js b/node_modules/@actions/exec/lib/toolrunner.js
+index e456a72..b6adc09 100644
+--- a/node_modules/@actions/exec/lib/toolrunner.js
++++ b/node_modules/@actions/exec/lib/toolrunner.js
+@@ -369,6 +369,10 @@ class ToolRunner extends events.EventEmitter {
+         if (options.windowsVerbatimArguments) {
+             result.argv0 = `"${toolPath}"`;
+         }
++        result.detached = options.detached;
++        if (result.detached) {
++          result.stdio = 'ignore';
++        }
+         return result;
+     }
+     /**
