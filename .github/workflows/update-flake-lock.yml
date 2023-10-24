@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: "Install Nix"
-        uses: cachix/install-nix-action@v22
+        uses: cachix/install-nix-action@v23
 
       - name: "Update flake.lock"
         uses: DeterminateSystems/update-flake-lock@v20
