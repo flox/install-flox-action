@@ -31,10 +31,15 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
     "Environment=AWS_SECRET_ACCESS_KEY=${INPUT_AWS_SECRET_ACCESS_KEY}" |
     sudo tee -a /etc/systemd/system/nix-daemon.service.d/aws-credentials.conf >/dev/null
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
+  NIX_SSL_CERT_FILE="$(sudo plutil -extract EnvironmentVariables.NIX_SSL_CERT_FILE raw /Library/LaunchDaemons/org.nixos.nix-daemon.plist)"
+  {
+    echo "NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE"
+    echo "SSL_CERT_FILE=$NIX_SSL_CERT_FILE"
+  } >>"${GITHUB_ENV}"
   sudo launchctl setenv AWS_SECRET_ACCESS_KEY "$INPUT_AWS_SECRET_ACCESS_KEY"
   sudo launchctl setenv AWS_ACCESS_KEY_ID     "$INPUT_AWS_ACCESS_KEY_ID"
-  sudo launchctl setenv NIX_SSL_CERT_FILE     "$(sudo plutil -extract EnvironmentVariables.NIX_SSL_CERT_FILE raw /Library/LaunchDaemons/org.nixos.nix-daemon.plist)"
-  sudo launchctl setenv SSL_CERT_FILE     "$(sudo plutil -extract EnvironmentVariables.NIX_SSL_CERT_FILE raw /Library/LaunchDaemons/org.nixos.nix-daemon.plist)"
+  sudo launchctl setenv NIX_SSL_CERT_FILE     "$NIX_SSL_CERT_FILE"
+  sudo launchctl setenv SSL_CERT_FILE         "$NIX_SSL_CERT_FILE"
 fi
 
 
