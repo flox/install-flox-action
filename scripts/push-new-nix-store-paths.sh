@@ -25,19 +25,5 @@ elif [[ "$RUNNER_OS" == "macOS" ]]; then
 fi
 echo "$NEW_STORE_PATHS_FILE_COUNT new paths will be pushed";
 
-echo ""
-echo "========================================================================"
-echo "========================================================================"
-echo "========================================================================"
-echo ""
-
-cat "$NEW_STORE_PATHS_FILE"
-
-echo ""
-echo "========================================================================"
-echo "========================================================================"
-echo "========================================================================"
-echo ""
-
 # Allow pushing to fail.
-cat "$NEW_STORE_PATHS_FILE" | tr '\n' ' ' | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" --no-recursive --stdin -vv ||:;
+cat "$NEW_STORE_PATHS_FILE" | tr '\n' ' ' | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" --stdin -vv ||:;
