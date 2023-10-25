@@ -40,4 +40,4 @@ echo "========================================================================"
 echo ""
 
 # Allow pushing to fail.
-cat "$NEW_STORE_PATHS_FILE" | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" --no-recursive --stdin -vv ||:;
+cat "$NEW_STORE_PATHS_FILE" | tr '\n' ' ' | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" --no-recursive --stdin -vv ||:;
