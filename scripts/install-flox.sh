@@ -7,17 +7,19 @@ command -v curl >/dev/null 2>&1 || {
   exit 1;
 }
 
-# Ensure INPUT_DOWNLOAD_URL is set
-if [ -z "$INPUT_DOWNLOAD_URL" ]; then
-  echo >&2 "Aborting: 'INPUT_DOWNLOAD_URL' environment variable is not set.";
-  exit 1;
+
+if [ -z "$INSTALLER_FILE" ]; then
+
+  # Ensure INPUT_DOWNLOAD_URL is set
+  if [ -z "$INPUT_DOWNLOAD_URL" ]; then
+    echo >&2 "Aborting: 'INPUT_DOWNLOAD_URL' environment variable is not set.";
+    exit 1;
+  fi
+
+  echo "Downloading flox..."
+  INSTALLER_FILE=$(basename $INPUT_DOWNLOAD_URL)
+  curl "$INPUT_DOWNLOAD_URL" --output "$INSTALLER_FILE";
 fi
-
-
-echo "Downloading flox..."
-
-DOWNLOADED_FILE=$(basename $INPUT_DOWNLOAD_URL)
-curl "$INPUT_DOWNLOAD_URL" --output "$DOWNLOADED_FILE";
 
 
 echo "Installing flox..."
@@ -27,18 +29,18 @@ if [ "$EUID" -ne 0 ]; then
   SUDO='sudo'
 fi
 
-case $DOWNLOADED_FILE in
+case $INSTALLER_FILE in
   *.rpm)
-    $SUDO rpm -i "$DOWNLOADED_FILE";
+    $SUDO rpm -i "$INSTALLER_FILE";
     ;;
   *.deb)
-    $SUDO dpkg -i "$DOWNLOADED_FILE";
+    $SUDO dpkg -i "$INSTALLER_FILE";
     ;;
   *.pkg)
-    $SUDO installer -pkg "$DOWNLOADED_FILE" -target /;
+    $SUDO installer -pkg "$INSTALLER_FILE" -target /;
     ;;
   *)
-    echo >&2 "Aborting: Unknown file '$DOWNLOADED_FILE' downloaded. Not sure how to install it.";
+    echo >&2 "Aborting: Unknown file '$INSTALLER_FILE' downloaded. Not sure how to install it.";
     exit 1;
     ;;
 esac
