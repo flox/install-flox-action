@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 # Ensure curl is available
 command -v curl >/dev/null 2>&1 || {
@@ -21,6 +21,7 @@ if [ -z "$INSTALLER_FILE" ]; then
   curl "$INPUT_DOWNLOAD_URL" --output "$INSTALLER_FILE";
 fi
 
+set -u
 
 echo "Installing flox..."
 
