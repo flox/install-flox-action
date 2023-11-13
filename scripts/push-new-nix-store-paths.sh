@@ -26,4 +26,4 @@ fi
 echo "$NEW_STORE_PATHS_FILE_COUNT new paths will be pushed";
 
 # Allow pushing to fail.
-cat "$NEW_STORE_PATHS_FILE" | tr '\n' ' ' | nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" --stdin -vv ||:;
+cat "$NEW_STORE_PATHS_FILE" | xargs -r nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" -vv||:;
