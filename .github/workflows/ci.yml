@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches:
-      - "fix-macos-cache"
       - "main"
       - "releases/*"
   schedule:
