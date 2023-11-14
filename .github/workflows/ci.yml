@@ -17,13 +17,15 @@ jobs:
 
   test-javascript:
     name: "JavaScript Tests"
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os:
           - "ubuntu-latest"
           - "macos-latest"
+          - [ self-hosted linux arm64 ]
+          - [ self-hosted linux x86 ]
 
     steps:
       - name: "Checkout"
