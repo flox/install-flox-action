@@ -25,7 +25,7 @@ jobs:
           - "ubuntu-latest"
           - "macos-latest"
           - [ "self-hosted", "Linux", "ARM64" ]
-          - [ "self-hosted", "Linux", "X86" ]
+          - [ "self-hosted", "Linux", "X64" ]
 
     steps:
       - name: "Checkout"
@@ -71,7 +71,7 @@ jobs:
           - "ubuntu-latest"
           - "macos-latest"
           - [ "self-hosted", "Linux", "ARM64" ]
-          - [ "self-hosted", "Linux", "X86" ]
+          - [ "self-hosted", "Linux", "X64" ]
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
@@ -105,7 +105,7 @@ jobs:
           - "ubuntu-latest"
           - "macos-latest"
           - [ "self-hosted", "Linux", "ARM64" ]
-          - [ "self-hosted", "Linux", "X86" ]
+          - [ "self-hosted", "Linux", "X64" ]
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
