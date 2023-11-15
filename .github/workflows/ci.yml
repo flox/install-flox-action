@@ -61,13 +61,15 @@ jobs:
 
   test-minimal-action:
     name: "Minimal - Github Action Test"
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os:
           - "ubuntu-latest"
           - "macos-latest"
+          - [ self-hosted linux arm64 ]
+          - [ self-hosted linux x86 ]
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
@@ -93,13 +95,15 @@ jobs:
 
   test-all-action:
     name: "All - Github Action Test"
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os:
           - "ubuntu-latest"
           - "macos-latest"
+          - [ self-hosted linux arm64 ]
+          - [ self-hosted linux x86 ]
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
