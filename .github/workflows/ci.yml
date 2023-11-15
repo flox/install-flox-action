@@ -37,6 +37,8 @@ jobs:
       - name: "Cache Dependencies"
         id: cache
         uses: actions/cache@v3
+        env:
+          GITHUB_ACTIONS_RUNNER_FORCED_NODE_VERSION: node20
         with:
           key: npm-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
           path: ./node_modules
