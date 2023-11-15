@@ -36,7 +36,7 @@ jobs:
 
       - name: "Cache Dependencies"
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@8070854e57d983bdd2887b0a708ad985f77398ab
         env:
           GITHUB_ACTIONS_RUNNER_FORCED_NODE_VERSION: node20
         with:
