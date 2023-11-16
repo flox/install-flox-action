@@ -122,6 +122,15 @@ jobs:
         flox build
 ```
 
+## Builders
+
+Can configure additional builders via:
+```
+        builders: ssh://user@host x86_64-linux /ssh-key - - - - <base64_ssh_host_key>
+```
+
+
+
 ## 📫 Have a question? Want to chat? Ran into a problem?
 
 We are happy to welcome you to our [Discourse forum][discourse] and answer your

@@ -114,7 +114,8 @@ jobs:
         with:
           oauth-client-id: "${{ secrets.TAILSCALE_CLIENT_ID }}"
           oauth-secret: "${{ secrets.TAILSCALE_SECRET }}"
-          args: "--login-server ${{ env.TAILSCALE_URL }}"
+          args: "--login-server ${{ vars.TAILSCALE_URL }}"
+          tags: tag:ci
 
       - name: "Test Local Action"
         uses: ./
