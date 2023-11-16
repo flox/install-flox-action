@@ -115,6 +115,7 @@ jobs:
           oauth-secret: "${{ secrets.TAILSCALE_SECRET }}"
           args: "--login-server ${{ vars.TAILSCALE_URL }}"
           tags: tag:ci
+          authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
 
       - name: "Test Local Action"
         uses: ./
