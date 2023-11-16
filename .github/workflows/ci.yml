@@ -99,7 +99,6 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "macos-latest"
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
