@@ -124,6 +124,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           builders: ${{ secrets.FLOX_BUILDERS }}
+          ssh-key: ${{ secrets.FLOXBOT_SSH_KEY }}
 
       - name: "Build Example"
         env:
@@ -131,5 +132,6 @@ jobs:
           # not ready yet
           FLOX_BASH_PASSTHRU: true
         run: |
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo" {} "uname -mo > $out")'
           cd example
           flox build --no-write-lock-file
