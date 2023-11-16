@@ -109,6 +109,13 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v4
 
+      - name: "Setup Tailscale"
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: "${{ secrets.TAILSCALE_CLIENT_ID }}"
+          oauth-secret: "${{ secrets.TAILSCALE_SECRET }}"
+          args: "--login-server ${{ env.TAILSCALE_URL }}"
+
       - name: "Test Local Action"
         uses: ./
         with:
@@ -117,6 +124,7 @@ jobs:
           substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          builders: ${{ secrets.FLOX_BUILDERS }}
 
       - name: "Build Example"
         env:
