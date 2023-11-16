@@ -113,7 +113,7 @@ jobs:
         with:
           oauth-client-id: "${{ secrets.TAILSCALE_CLIENT_ID }}"
           oauth-secret: "${{ secrets.TAILSCALE_SECRET }}"
-          args: "--login-server ${{ vars.TAILSCALE_URL }}"
+          args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
           tags: tag:ci
           authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
 
