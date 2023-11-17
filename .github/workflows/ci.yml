@@ -132,6 +132,11 @@ jobs:
           # not ready yet
           FLOX_BASH_PASSTHRU: true
         run: |
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo" {} "uname -mo > $out")'
+          export NIX_CONFIG="experimental-features = nix-command flakes"
+          RAND=$RANDOM
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           cd example
           flox build --no-write-lock-file
