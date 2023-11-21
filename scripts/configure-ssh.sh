@@ -13,7 +13,7 @@ command -v ssh-keygen >/dev/null 2>&1 || {
   exit 1;
 }
 # Ensure HOME is set
-if [ -z "$HOME " ]; then
+if [ -z "$HOME" ]; then
   echo >&2 "Aborting: 'HOME' environment variable is not set.";
   exit 1;
 fi
@@ -47,4 +47,24 @@ fi
 nohup ssh-agent -D > .ssh-agent-out &
 eval "$( (tail -f .ssh-agent-out &) | sed '/echo Agent pid/ q')"
 
-echo "SSH_AUTH_SOCK='$SSH_AUTH_SOCK'" > "$GITHUB_ENV"
+# Ensure that the ssh socket has access the the required keys. Notably needed for the nix daemon (see below)
+ssh-add "$HOME/.ssh/id_$INPUT_SSH_KEY_FORMAT"
+ssh-add -l
+
+echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" > "$GITHUB_ENV"
+
+echo "Making the Nix daemon aware of the SSH credentials..."
+
+if [[ "$RUNNER_OS" == "Linux" ]]; then
+  sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
+  printf "%s\n" \
+    '[Service]' \
+    "Environment=SSH_AUTH_SOCK=${SSH_AUTH_SOCK}" |
+    sudo tee -a /etc/systemd/system/nix-daemon.service.d/ssh-credentials.conf >/dev/null
+elif [[ "$RUNNER_OS" == "macOS" ]]; then
+  sudo plutil \
+    -insert EnvironmentVariables.SSH_AUTH_SOCK \
+    -string "$SSH_AUTH_SOCK" \
+      /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+fi
+

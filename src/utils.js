@@ -31,7 +31,9 @@ export const SCRIPTS = {
   configureGithub: scriptPath('configure-github.sh'),
   configureSsh: scriptPath('configure-ssh.sh'),
   recordNixStorePaths: scriptPath('record-nix-store-paths.sh'),
-  pushNewNixStorePaths: scriptPath('push-new-nix-store-paths.sh')
+  pushNewNixStorePaths: scriptPath('push-new-nix-store-paths.sh'),
+  restartNixDaemon: scriptPath('restart-nix-daemon.sh'),
+  configureBuilders: scriptPath('configure-builders.sh')
 }
 
 export function exportVariableFromInput(input, defaultValue = '') {

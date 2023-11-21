@@ -122,6 +122,24 @@ jobs:
         flox build
 ```
 
+## Builders
+
+Can configure remote builders via:
+
+```
+        remote-builders: |
+            ssh://user@host x86_64-linux /ssh-key - - - - <base64_ssh_host_key>
+            ssh://user@host aarch64-linux /ssh-key - - - - <base64_ssh_host_key>
+            ssh://user@host x86_64-darwin /ssh-key - - - - <base64_ssh_host_key>
+            ssh://user@host aarch64-darwin /ssh-key - - - - <base64_ssh_host_key>
+```
+
+[Read more][distributed-builds] about the remote builders format.
+
+
+[distributed-builds]: https://nixos.org/manual/nix/unstable/advanced-topics/distributed-builds
+
+
 ## 📫 Have a question? Want to chat? Ran into a problem?
 
 We are happy to welcome you to our [Discourse forum][discourse] and answer your

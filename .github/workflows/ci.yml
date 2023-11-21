@@ -17,7 +17,7 @@ jobs:
 
   test-javascript:
     name: "JavaScript Tests"
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
@@ -34,7 +34,9 @@ jobs:
 
       - name: "Cache Dependencies"
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@8070854e57d983bdd2887b0a708ad985f77398ab
+        env:
+          GITHUB_ACTIONS_RUNNER_FORCED_NODE_VERSION: node20
         with:
           key: npm-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
           path: ./node_modules
@@ -59,7 +61,7 @@ jobs:
 
   test-minimal-action:
     name: "Minimal - Github Action Test"
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
@@ -91,21 +93,25 @@ jobs:
 
   test-all-action:
     name: "All - Github Action Test"
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os:
           - "ubuntu-latest"
           - "macos-latest"
-        # TODO: test with different flox versions
-        #flox-version:
-        #  - stable
-        #  - prerelease
 
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
+
+      - name: "Setup Tailscale"
+        if: ${{ runner.os == 'Linux' }}
+        uses: tailscale/github-action@v2
+        with:
+          args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
+          tags: tag:ci
+          authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
 
       - name: "Test Local Action"
         uses: ./
@@ -115,12 +121,21 @@ jobs:
           substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ssh-key: ${{ secrets.FLOXBOT_SSH_KEY }}
+          remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}
 
-      - name: "Build Example"
+      - name: "Test Remote Builders"
+        if: ${{ runner.os == 'Linux' }}
         env:
           # XXX: This is needed until we are in this limbo state and our "new" ui is
           # not ready yet
           FLOX_BASH_PASSTHRU: true
         run: |
+          export NIX_CONFIG="experimental-features = nix-command flakes"
+          RAND=$RANDOM
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           cd example
           flox build --no-write-lock-file

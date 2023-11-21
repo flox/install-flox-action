@@ -37,6 +37,11 @@ inputs:
   substituter-key:
     description: "Substituter key created by `nix key generate-secret`"
 
+  remote-builders:
+    description: "Default remote builders to use for builds"
+    default: ""
+    example: "ssh-ng://nixbld@fd7a:115c:a1e0::f  x86_64-linux   /etc/ssh/ssh_host_ed25519_key 1 0 kvm,big-parallel,nixos-test,benchmark - c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUZKUWVLUDkvUDBreG9FMGZUZVYyMFdkZnZYVlBWUGUrd2IyWkRuUitTSzAgcm9vdEBpcC0xMC0wLTEwLTIyMy5lYzIuaW50ZXJuYWwK"
+
   aws-access-key-id:
     description: "AWS access key to upload"
   aws-secret-access-key:

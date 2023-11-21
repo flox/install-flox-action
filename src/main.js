@@ -2,6 +2,7 @@ const cache = require('@actions/cache')
 const core = require('@actions/core')
 const exec = require('@actions/exec')
 const utils = require('./utils')
+const which = require('which')
 
 export async function run() {
   core.startGroup('Download & Install flox')
@@ -43,6 +44,13 @@ export async function run() {
     core.endGroup()
   }
 
+  const remoteBuilders = utils.exportVariableFromInput('remote-builders')
+  if (remoteBuilders !== null && remoteBuilders !== '') {
+    core.startGroup('Configure Builders')
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureBuilders])
+    core.endGroup()
+  }
+
   const awsAccessKeyId = utils.exportVariableFromInput('aws-access-key-id')
   const awsSecretAccessKey = utils.exportVariableFromInput(
     'aws-secret-access-key'
@@ -52,6 +60,10 @@ export async function run() {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureAWS])
     core.endGroup()
   }
+
+  core.startGroup('Restart Nix Daemon')
+  await exec.exec('bash', ['-c', utils.SCRIPTS.restartNixDaemon])
+  core.endGroup()
 
   core.startGroup('Checking Flox Version')
   await exec.exec('flox', ['--version'])

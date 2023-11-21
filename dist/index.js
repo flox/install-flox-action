@@ -82182,6 +82182,7 @@ const cache = __nccwpck_require__(7799)
 const core = __nccwpck_require__(2186)
 const exec = __nccwpck_require__(1514)
 const utils = __nccwpck_require__(1608)
+const which = __nccwpck_require__(6143)
 
 async function run() {
   core.startGroup('Download & Install flox')
@@ -82223,6 +82224,13 @@ async function run() {
     core.endGroup()
   }
 
+  const remoteBuilders = utils.exportVariableFromInput('remote-builders')
+  if (remoteBuilders !== null && remoteBuilders !== '') {
+    core.startGroup('Configure Builders')
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureBuilders])
+    core.endGroup()
+  }
+
   const awsAccessKeyId = utils.exportVariableFromInput('aws-access-key-id')
   const awsSecretAccessKey = utils.exportVariableFromInput(
     'aws-secret-access-key'
@@ -82232,6 +82240,10 @@ async function run() {
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureAWS])
     core.endGroup()
   }
+
+  core.startGroup('Restart Nix Daemon')
+  await exec.exec('bash', ['-c', utils.SCRIPTS.restartNixDaemon])
+  core.endGroup()
 
   core.startGroup('Checking Flox Version')
   await exec.exec('flox', ['--version'])
@@ -82331,7 +82343,9 @@ const SCRIPTS = {
   configureGithub: scriptPath('configure-github.sh'),
   configureSsh: scriptPath('configure-ssh.sh'),
   recordNixStorePaths: scriptPath('record-nix-store-paths.sh'),
-  pushNewNixStorePaths: scriptPath('push-new-nix-store-paths.sh')
+  pushNewNixStorePaths: scriptPath('push-new-nix-store-paths.sh'),
+  restartNixDaemon: scriptPath('restart-nix-daemon.sh'),
+  configureBuilders: scriptPath('configure-builders.sh')
 }
 
 function exportVariableFromInput(input, defaultValue = '') {
