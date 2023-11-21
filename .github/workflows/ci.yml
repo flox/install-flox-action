@@ -122,7 +122,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ssh-key: ${{ secrets.FLOXBOT_SSH_KEY }}
-          remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || "" }}
+          remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}
 
       - name: "Test Remote Builders"
         if: ${{ runner.os == 'Linux' }}
