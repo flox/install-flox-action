@@ -82224,8 +82224,8 @@ async function run() {
     core.endGroup()
   }
 
-  const builders = utils.exportVariableFromInput('builders')
-  if (builders !== null && builders !== '') {
+  const remoteBuilders = utils.exportVariableFromInput('remote-builders')
+  if (remoteBuilders !== null && remoteBuilders !== '') {
     core.startGroup('Configure Builders')
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureBuilders])
     core.endGroup()

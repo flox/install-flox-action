@@ -124,11 +124,20 @@ jobs:
 
 ## Builders
 
-Can configure additional builders via:
+Can configure remote builders via:
+
 ```
-        builders: ssh://user@host x86_64-linux /ssh-key - - - - <base64_ssh_host_key>
+        remote-builders: |
+            ssh://user@host x86_64-linux /ssh-key - - - - <base64_ssh_host_key>
+            ssh://user@host aarch64-linux /ssh-key - - - - <base64_ssh_host_key>
+            ssh://user@host x86_64-darwin /ssh-key - - - - <base64_ssh_host_key>
+            ssh://user@host aarch64-darwin /ssh-key - - - - <base64_ssh_host_key>
 ```
 
+[Read more][distributed-builds] about the remote builders format.
+
+
+[distributed-builds]: https://nixos.org/manual/nix/unstable/advanced-topics/distributed-builds
 
 
 ## 📫 Have a question? Want to chat? Ran into a problem?

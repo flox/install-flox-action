@@ -106,6 +106,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Setup Tailscale"
+        if: ${{ runner.os == 'Linux' }}
         uses: tailscale/github-action@v2
         with:
           args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
@@ -120,10 +121,11 @@ jobs:
           substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          builders: ${{ secrets.FLOX_BUILDERS }}
           ssh-key: ${{ secrets.FLOXBOT_SSH_KEY }}
+          remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || "" }}
 
-      - name: "Build Example"
+      - name: "Test Remote Builders"
+        if: ${{ runner.os == 'Linux' }}
         env:
           # XXX: This is needed until we are in this limbo state and our "new" ui is
           # not ready yet
