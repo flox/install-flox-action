@@ -99,10 +99,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-        # TODO: test with different flox versions
-        #flox-version:
-        #  - stable
-        #  - prerelease
+          - "macos-latest"
 
     steps:
       - name: "Checkout"
