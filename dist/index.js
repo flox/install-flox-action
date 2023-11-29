@@ -82186,8 +82186,7 @@ const which = __nccwpck_require__(6143)
 
 async function run() {
   core.startGroup('Download & Install flox')
-  const downloadUrl = await utils.getDownloadUrl()
-  utils.exportVariableFromInput('download-url', downloadUrl)
+  await utils.getDownloadUrl()
   await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
   core.endGroup()
 
