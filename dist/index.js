@@ -82359,6 +82359,7 @@ async function getDownloadUrl() {
   const dpkg = await which('dpkg', { nothrow: true })
 
   const BASE_URL = core.getInput('base-url') || 'https://flox.dev/downloads'
+  core.debug(`Base URL is: ${BASE_URL}`)
 
   let downloadUrl
 
@@ -82395,7 +82396,9 @@ async function getDownloadUrl() {
       `No platform (${process.platform}) or arch (${process.arch}) or OS matched.`
     )
   }
-  core.debug(`DOWNLOAD_URL resolved to ${downloadUrl}`)
+
+  core.info(`DOWNLOAD_URL resolved to ${downloadUrl}`)
+  core.exportVariable('INPUT_DOWNLOAD_URL', downloadUrl)
 
   return downloadUrl
 }
