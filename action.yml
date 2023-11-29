@@ -8,8 +8,8 @@ branding:
 
 inputs:
 
-  download-url:
-    description: "Download URL of flox installer"
+  base-url:
+    description: "Download base URL of flox installer"
 
   git-user:
     description: "Name of the `author` and `commiter` in git if not set already"

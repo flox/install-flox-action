@@ -82186,7 +82186,7 @@ const which = __nccwpck_require__(6143)
 
 async function run() {
   core.startGroup('Download & Install flox')
-  const downloadUrl = await utils.getDownloadUrl(process.platform, process.arch)
+  const downloadUrl = await utils.getDownloadUrl()
   utils.exportVariableFromInput('download-url', downloadUrl)
   await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
   core.endGroup()
@@ -82301,7 +82301,6 @@ async function run() {
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "BASE_URL": () => (/* binding */ BASE_URL),
 /* harmony export */   "GH_CACHE_KEY": () => (/* binding */ GH_CACHE_KEY),
 /* harmony export */   "GH_CACHE_PATHS": () => (/* binding */ GH_CACHE_PATHS),
 /* harmony export */   "GH_CACHE_RESTORE_KEYS": () => (/* binding */ GH_CACHE_RESTORE_KEYS),
@@ -82321,7 +82320,6 @@ const ghRunnerHash = md5(
 )
 const ghJobId = process.env.GITHUB_JOB
 
-const BASE_URL = 'https://flox.dev/downloads'
 const GH_CACHE_KEY = `nix-cache-${ghWorkflowHash}-${ghRunnerHash}-${ghJobId}`
 
 const GH_CACHE_PATHS = ['~/.cache/nix']
@@ -82359,6 +82357,8 @@ function exportVariableFromInput(input, defaultValue = '') {
 async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
   const dpkg = await which('dpkg', { nothrow: true })
+
+  const BASE_URL = core.getInput('base-url') || 'https://flox.dev/downloads'
 
   let downloadUrl
 

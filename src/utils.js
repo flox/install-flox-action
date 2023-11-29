@@ -9,7 +9,6 @@ const ghRunnerHash = md5(
 )
 const ghJobId = process.env.GITHUB_JOB
 
-export const BASE_URL = 'https://flox.dev/downloads'
 export const GH_CACHE_KEY = `nix-cache-${ghWorkflowHash}-${ghRunnerHash}-${ghJobId}`
 
 export const GH_CACHE_PATHS = ['~/.cache/nix']
@@ -47,6 +46,8 @@ export function exportVariableFromInput(input, defaultValue = '') {
 export async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
   const dpkg = await which('dpkg', { nothrow: true })
+
+  const BASE_URL = core.getInput('base-url') || 'https://flox.dev/downloads'
 
   let downloadUrl
 
