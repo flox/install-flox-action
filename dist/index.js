@@ -82383,13 +82383,13 @@ async function getDownloadUrl() {
     process.platform === 'linux' &&
     process.arch === 'x64'
   ) {
-    downloadUrl = `${BASE_URL}/yumrepo/flox.x86_64-linux.rpm`
+    downloadUrl = `${BASE_URL}/rpm/flox.x86_64-linux.rpm`
   } else if (
     rpm !== null &&
     process.platform === 'linux' &&
     process.arch === 'arm64'
   ) {
-    downloadUrl = `${BASE_URL}/yumrepo/flox.aarch64-linux.rpm`
+    downloadUrl = `${BASE_URL}/rpm/flox.aarch64-linux.rpm`
   } else {
     core.setFailed(
       `No platform (${process.platform}) or arch (${process.arch}) or OS matched.`
