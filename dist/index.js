@@ -82186,8 +82186,7 @@ const which = __nccwpck_require__(6143)
 
 async function run() {
   core.startGroup('Download & Install flox')
-  const downloadUrl = await utils.getDownloadUrl(process.platform, process.arch)
-  utils.exportVariableFromInput('download-url', downloadUrl)
+  await utils.getDownloadUrl()
   await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
   core.endGroup()
 
@@ -82301,10 +82300,10 @@ async function run() {
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "BASE_URL": () => (/* binding */ BASE_URL),
 /* harmony export */   "GH_CACHE_KEY": () => (/* binding */ GH_CACHE_KEY),
 /* harmony export */   "GH_CACHE_PATHS": () => (/* binding */ GH_CACHE_PATHS),
 /* harmony export */   "GH_CACHE_RESTORE_KEYS": () => (/* binding */ GH_CACHE_RESTORE_KEYS),
+/* harmony export */   "OLD_BASE_URL": () => (/* binding */ OLD_BASE_URL),
 /* harmony export */   "SCRIPTS": () => (/* binding */ SCRIPTS),
 /* harmony export */   "exportVariableFromInput": () => (/* binding */ exportVariableFromInput),
 /* harmony export */   "getDownloadUrl": () => (/* binding */ getDownloadUrl),
@@ -82321,7 +82320,7 @@ const ghRunnerHash = md5(
 )
 const ghJobId = process.env.GITHUB_JOB
 
-const BASE_URL = 'https://flox.dev/downloads'
+const OLD_BASE_URL = 'https://flox.dev/downloads'
 const GH_CACHE_KEY = `nix-cache-${ghWorkflowHash}-${ghRunnerHash}-${ghJobId}`
 
 const GH_CACHE_PATHS = ['~/.cache/nix']
@@ -82360,6 +82359,12 @@ async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
   const dpkg = await which('dpkg', { nothrow: true })
 
+  const BASE_URL = core.getInput('base-url') || OLD_BASE_URL
+  core.debug(`Base URL is: ${BASE_URL}`)
+
+  const deb_folder = BASE_URL === OLD_BASE_URL ? 'debian-archive' : 'deb'
+  const rpm_folder = BASE_URL === OLD_BASE_URL ? 'yumrepo' : 'rpm'
+
   let downloadUrl
 
   if (process.platform === 'darwin' && process.arch === 'x64') {
@@ -82371,31 +82376,33 @@ async function getDownloadUrl() {
     process.platform === 'linux' &&
     process.arch === 'x64'
   ) {
-    downloadUrl = `${BASE_URL}/debian-archive/flox.x86_64-linux.deb`
+    downloadUrl = `${BASE_URL}/${deb_folder}/flox.x86_64-linux.deb`
   } else if (
     dpkg !== null &&
     process.platform === 'linux' &&
     process.arch === 'arm64'
   ) {
-    downloadUrl = `${BASE_URL}/debian-archive/flox.aarch64-linux.deb`
+    downloadUrl = `${BASE_URL}/${deb_folder}/flox.aarch64-linux.deb`
   } else if (
     rpm !== null &&
     process.platform === 'linux' &&
     process.arch === 'x64'
   ) {
-    downloadUrl = `${BASE_URL}/yumrepo/flox.x86_64-linux.rpm`
+    downloadUrl = `${BASE_URL}/${rpm_folder}/flox.x86_64-linux.rpm`
   } else if (
     rpm !== null &&
     process.platform === 'linux' &&
     process.arch === 'arm64'
   ) {
-    downloadUrl = `${BASE_URL}/yumrepo/flox.aarch64-linux.rpm`
+    downloadUrl = `${BASE_URL}/${rpm_folder}/flox.aarch64-linux.rpm`
   } else {
     core.setFailed(
       `No platform (${process.platform}) or arch (${process.arch}) or OS matched.`
     )
   }
-  core.debug(`DOWNLOAD_URL resolved to ${downloadUrl}`)
+
+  core.info(`DOWNLOAD_URL resolved to ${downloadUrl}`)
+  core.exportVariable('INPUT_DOWNLOAD_URL', downloadUrl)
 
   return downloadUrl
 }
