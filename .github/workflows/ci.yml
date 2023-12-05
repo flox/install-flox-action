@@ -18,20 +18,20 @@ jobs:
   test-javascript:
     name: "JavaScript Tests"
     runs-on: ${{ matrix.os }}
- 
+
     strategy:
       matrix:
         os:
           - "ubuntu-latest"
           - "macos-latest"
- 
+
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
- 
+
       - name: "Install Nix"
         uses: cachix/install-nix-action@v24
- 
+
       - name: "Cache Dependencies"
         id: cache
         uses: actions/cache@8070854e57d983bdd2887b0a708ad985f77398ab
@@ -45,24 +45,24 @@ jobs:
             npm-feature-${{ matrix.os }}-
             npm-feature-
             npm-
- 
+
       - name: "Install Dependencies"
         if: steps.cache.outputs.cache-hit != 'true'
         run: nix develop --command npm ci
- 
+
       - name: "Check Format"
         run: nix develop --command npm run format:check
- 
+
       - name: "Lint"
         run: nix develop --command npm run lint
- 
+
       - name: "Test"
         run: nix develop --command npm run ci-test
- 
+
   test-minimal-action:
     name: "Minimal - Github Action Test"
     runs-on: ${{ matrix.os }}
- 
+
     strategy:
       matrix:
         os:
@@ -72,37 +72,37 @@ jobs:
         #flox-version:
         #  - stable
         #  - prerelease
- 
+
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
- 
+
       - name: "Test Local Action"
         uses: ./
         with:
           github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
- 
+
       - name: "Build Example"
         run: |
           cd example
           export NIX_CONFIG="experimental-features = nix-command flakes"
           # when installed with flox, nix can't see cacert
           flox build .#default --no-write-lock-file || nix build --no-write-lock-file
- 
+
   test-all-action:
     name: "All - Github Action Test"
     runs-on: ${{ matrix.os }}
- 
+
     strategy:
       matrix:
         os:
           - "ubuntu-latest"
           - "macos-latest"
- 
+
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
- 
+
       - name: "Setup Tailscale"
         if: ${{ runner.os == 'Linux' }}
         uses: tailscale/github-action@v2
@@ -110,7 +110,7 @@ jobs:
           args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
           tags: tag:ci
           authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
- 
+
       - name: "Test Local Action"
         uses: ./
         with:
@@ -121,7 +121,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ssh-key: ${{ secrets.FLOXBOT_SSH_KEY }}
           remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}
- 
+
       - name: "Test Remote Builders"
         if: ${{ runner.os == 'Linux' }}
         env:
@@ -139,7 +139,7 @@ jobs:
           nix build --no-write-lock-file
 
   test-nix-action:
-    name: "All - test integration with Nix"
+    name: "Nix - test integration with Nix"
     runs-on: ${{ matrix.os }}
 
     strategy:
