@@ -5,10 +5,13 @@ const utils = require('./utils')
 const which = require('which')
 
 export async function run() {
-  core.startGroup('Download & Install flox')
-  await utils.getDownloadUrl()
-  await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
-  core.endGroup()
+  const nix = await which('nix', { nothrow: true })
+  if (nix === null) {
+    core.startGroup('Download & Install flox')
+    await utils.getDownloadUrl()
+    await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
+    core.endGroup()
+  }
 
   core.startGroup('Configure Git')
   utils.exportVariableFromInput('git-user')
