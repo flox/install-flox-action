@@ -83,13 +83,10 @@ jobs:
           github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
  
       - name: "Build Example"
-        env:
-          # XXX: This is needed until we are in this limbo state and our "new" ui is
-          # not ready yet
-          FLOX_BASH_PASSTHRU: true
         run: |
           cd example
-          flox build --no-write-lock-file
+          export NIX_CONFIG="experimental-features = nix-command flakes"
+          nix build --no-write-lock-file
  
   test-all-action:
     name: "All - Github Action Test"
@@ -138,7 +135,7 @@ jobs:
           nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           cd example
-          flox build --no-write-lock-file
+          nix build --no-write-lock-file
 
   test-nix-action:
     name: "All - test integration with Nix"
@@ -192,4 +189,4 @@ jobs:
           nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           cd example
-          flox build --no-write-lock-file
+          nix build --no-write-lock-file
