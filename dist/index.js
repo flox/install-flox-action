@@ -82256,7 +82256,12 @@ async function run() {
 
   core.startGroup('Checking Nix Version')
   await exec.exec('nix', ['--version'])
-  await exec.exec('nix', ['store', 'ping'])
+  await exec.exec('nix', [
+    'store',
+    'ping',
+    '--extra-experimental-features',
+    'nix-command'
+  ])
   core.endGroup()
 
   core.startGroup('Record Nix Store Paths')
