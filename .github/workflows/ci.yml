@@ -83,13 +83,11 @@ jobs:
           github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
 
       - name: "Build Example"
-        env:
-          # XXX: This is needed until we are in this limbo state and our "new" ui is
-          # not ready yet
-          FLOX_BASH_PASSTHRU: true
         run: |
           cd example
-          flox build --no-write-lock-file
+          export NIX_CONFIG="experimental-features = nix-command flakes"
+          # when installed with flox, nix can't see cacert
+          flox build .#default --no-write-lock-file || nix build --no-write-lock-file
 
   test-all-action:
     name: "All - Github Action Test"
@@ -138,4 +136,58 @@ jobs:
           nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           cd example
-          flox build --no-write-lock-file
+          nix build --no-write-lock-file
+
+  test-nix-action:
+    name: "Nix - test integration with Nix"
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "macos-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Install Nix"
+        uses: "cachix/install-nix-action@v24"
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: "Setup Tailscale"
+        if: ${{ runner.os == 'Linux' }}
+        uses: tailscale/github-action@v2
+        with:
+          args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
+          tags: tag:ci
+          authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
+
+      - name: "Test Local Action"
+        uses: ./
+        with:
+          github-access-token: ${{ secrets.NIX_GIT_TOKEN }}
+          substituter: s3://flox-store
+          substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ssh-key: ${{ secrets.FLOXBOT_SSH_KEY }}
+          remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}
+
+      - name: "Test Remote Builders"
+        if: ${{ runner.os == 'Linux' }}
+        env:
+          # XXX: This is needed until we are in this limbo state and our "new" ui is
+          # not ready yet
+          FLOX_BASH_PASSTHRU: true
+        run: |
+          export NIX_CONFIG="experimental-features = nix-command flakes"
+          RAND=$RANDOM
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          cd example
+          nix build --no-write-lock-file
