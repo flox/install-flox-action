@@ -67,8 +67,16 @@ export async function run() {
   await exec.exec('bash', ['-c', utils.SCRIPTS.restartNixDaemon])
   core.endGroup()
 
-  core.startGroup('Checking Flox Version')
-  await exec.exec('flox', ['--version'])
+  const flox = await which('flox', { nothrow: true })
+  if (flox !== null) {
+    core.startGroup('Checking Flox Version')
+    await exec.exec('flox', ['--version'])
+    core.endGroup()
+  }
+
+  core.startGroup('Checking Nix Version')
+  await exec.exec('nix', ['--version'])
+  await exec.exec('nix', ['store', 'ping'])
   core.endGroup()
 
   core.startGroup('Record Nix Store Paths')
