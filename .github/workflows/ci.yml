@@ -86,7 +86,8 @@ jobs:
         run: |
           cd example
           export NIX_CONFIG="experimental-features = nix-command flakes"
-          nix build --no-write-lock-file
+          # when installed with flox, nix can't see cacert
+          flox build .#default --no-write-lock-file || nix build --no-write-lock-file
  
   test-all-action:
     name: "All - Github Action Test"
