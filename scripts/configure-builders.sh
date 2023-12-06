@@ -12,4 +12,5 @@ echo "Making the Nix daemon aware of the builders"
 echo "$INPUT_REMOTE_BUILDERS" | sudo tee /etc/nix/machines
 {
   echo "builders = @/etc/nix/machines"
+  echo "builders-use-substitutes = true"
 } | sudo tee -a /etc/nix/nix.conf >/dev/null
