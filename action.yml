@@ -34,7 +34,7 @@ inputs:
     description: "Default substituter to use for uploads"
   substituter-options:
     description: "Default substituter options"
-    default: "?secret-key=/tmp/secret-key&write-nar-listing=1&ls-compression=br"
+    default: "?secret-key=/tmp/secret-key&write-nar-listing=1&ls-compression=br&compression=zstd"
   substituter-key:
     description: "Substituter key created by `nix key generate-secret`"
 
