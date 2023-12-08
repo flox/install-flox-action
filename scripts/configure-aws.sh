@@ -31,13 +31,6 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
     "Environment=AWS_SECRET_ACCESS_KEY=${INPUT_AWS_SECRET_ACCESS_KEY}" |
     sudo tee -a /etc/systemd/system/nix-daemon.service.d/aws-credentials.conf >/dev/null
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
-  :
-  {
-    if NIX_SSL_CERT_FILE="$(sudo plutil -extract EnvironmentVariables.NIX_SSL_CERT_FILE raw /Library/LaunchDaemons/org.nixos.nix-daemon.plist)" ; then
-      echo "NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE"
-    fi
-    echo "SSL_CERT_FILE=$NIX_SSL_CERT_FILE"
-  } >>"${GITHUB_ENV}"
   sudo plutil \
     -insert EnvironmentVariables.AWS_SECRET_ACCESS_KEY \
     -string "$INPUT_AWS_SECRET_ACCESS_KEY" \
