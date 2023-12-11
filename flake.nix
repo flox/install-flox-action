@@ -1,6 +1,13 @@
 {
   description = "Installs flox on GitHub Actions for the supported platforms: GNU/Linux and macOS.";
 
+  nixConfig.extra-substituters = [
+    "https://cache.floxdev.com"
+  ];
+  nixConfig.extra-trusted-public-keys = [
+    "flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0="
+  ];
+
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
