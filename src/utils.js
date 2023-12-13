@@ -33,7 +33,8 @@ export const SCRIPTS = {
   recordNixStorePaths: scriptPath('record-nix-store-paths.sh'),
   pushNewNixStorePaths: scriptPath('push-new-nix-store-paths.sh'),
   restartNixDaemon: scriptPath('restart-nix-daemon.sh'),
-  configureBuilders: scriptPath('configure-builders.sh')
+  configureBuilders: scriptPath('configure-builders.sh'),
+  configurePostBuildHook: scriptPath('configure-post-build-hook.sh')
 }
 
 export function exportVariableFromInput(input, defaultValue = '') {

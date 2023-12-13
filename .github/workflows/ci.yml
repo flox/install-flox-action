@@ -123,7 +123,7 @@ jobs:
           remote-builders: ${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}
 
       - name: "Test Remote Builders"
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ runner.os == 'Linux' }} # tailscale Action does not work on MacOS
         env:
           # XXX: This is needed until we are in this limbo state and our "new" ui is
           # not ready yet
@@ -131,12 +131,15 @@ jobs:
         run: |
           export NIX_CONFIG="experimental-features = nix-command flakes"
           RAND=$RANDOM
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
+          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
           cd example
           nix build --no-write-lock-file
+
+          echo "contents of /tmp/drv-paths:"
+          cat /tmp/drv-paths
 
   test-nix-action:
     name: "Nix - test integration with Nix"

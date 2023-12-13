@@ -44,6 +44,9 @@ export async function run() {
     core.startGroup('Configure Substituter')
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureSubstituter])
     core.endGroup()
+    core.startGroup('Configure Post Build Hook')
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configurePostBuildHook])
+    core.endGroup()
   }
 
   const remoteBuilders = utils.exportVariableFromInput('remote-builders')
