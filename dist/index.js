@@ -82308,6 +82308,7 @@ async function run() {
   core.startGroup('Save Nix Cache')
   await cache.saveCache(utils.GH_CACHE_PATHS, utils.GH_CACHE_KEY)
   core.endGroup()
+  process.exit(0)
 }
 
 
