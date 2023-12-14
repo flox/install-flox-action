@@ -82224,6 +82224,9 @@ async function run() {
     core.startGroup('Configure Substituter')
     await exec.exec('bash', ['-c', utils.SCRIPTS.configureSubstituter])
     core.endGroup()
+    core.startGroup('Configure Post Build Hook')
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configurePostBuildHook])
+    core.endGroup()
   }
 
   const remoteBuilders = utils.exportVariableFromInput('remote-builders')
@@ -82305,6 +82308,7 @@ async function run() {
   core.startGroup('Save Nix Cache')
   await cache.saveCache(utils.GH_CACHE_PATHS, utils.GH_CACHE_KEY)
   core.endGroup()
+  process.exit(0)
 }
 
 
@@ -82360,7 +82364,8 @@ const SCRIPTS = {
   recordNixStorePaths: scriptPath('record-nix-store-paths.sh'),
   pushNewNixStorePaths: scriptPath('push-new-nix-store-paths.sh'),
   restartNixDaemon: scriptPath('restart-nix-daemon.sh'),
-  configureBuilders: scriptPath('configure-builders.sh')
+  configureBuilders: scriptPath('configure-builders.sh'),
+  configurePostBuildHook: scriptPath('configure-post-build-hook.sh')
 }
 
 function exportVariableFromInput(input, defaultValue = '') {
