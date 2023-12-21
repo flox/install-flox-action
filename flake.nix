@@ -2,7 +2,7 @@
   description = "Installs flox on GitHub Actions for the supported platforms: GNU/Linux and macOS.";
 
   nixConfig.extra-substituters = [
-    "https://cache.floxdev.com"
+    "https://cache.flox.dev"
   ];
   nixConfig.extra-trusted-public-keys = [
     "flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0="
