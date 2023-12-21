@@ -13,7 +13,11 @@ export async function run() {
   }
 
   core.startGroup('Save Nix Cache')
-  await cache.saveCache(utils.GH_CACHE_PATHS, utils.GH_CACHE_KEY)
+  try {
+    await cache.saveCache(utils.GH_CACHE_PATHS, utils.GH_CACHE_KEY)
+  } catch (error) {
+    core.info(error.message)
+  }
   core.endGroup()
   process.exit(0)
 }
