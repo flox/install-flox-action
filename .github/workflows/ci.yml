@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - "main"
-      - "releases/*"
   schedule:
     - cron: '20 2 * * *'
 
@@ -199,15 +198,7 @@ jobs:
     name: "Report Failure"
     runs-on: "ubuntu-latest"
 
-    if: |
-      ${{
-        failure() &&
-        github.ref == 'refs/heads/main' && 
-        (
-          github.event_name == 'push' ||
-          github.event_name == 'schedule'
-        )
-      }}
+    if: ${{ failure() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule') }}
 
     needs:
       - "test-javascript"
