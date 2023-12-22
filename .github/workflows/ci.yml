@@ -117,8 +117,8 @@ jobs:
           github-access-token:      "${{ secrets.NIX_GIT_TOKEN }}"
           substituter:              "${{ vars.FLOX_CACHE_PUBLIC_BUCKET }}"
           substituter-key:          "${{ secrets.FLOX_CACHE_PUBLIC_NIX_SECRET_KEY }}"
-          aws-access-key-id:        "${{ secrets.FLOX_CACHE_AWS_ACCESS_KEY_ID }}"
-          aws-secret-access-key:    "${{ secrets.FLOX_CACHE_AWS_SECRET_ACCESS_KEY }}"
+          aws-access-key-id:        "${{ secrets.FLOX_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
+          aws-secret-access-key:    "${{ secrets.FLOX_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
           ssh-key:                  "${{ secrets.FLOXBOT_SSH_KEY }}"
           remote-builders:          "${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}"
 
@@ -174,8 +174,8 @@ jobs:
           github-access-token:      "${{ secrets.NIX_GIT_TOKEN }}"
           substituter:              "${{ vars.FLOX_CACHE_PUBLIC_BUCKET }}"
           substituter-key:          "${{ secrets.FLOX_CACHE_PUBLIC_NIX_SECRET_KEY }}"
-          aws-access-key-id:        "${{ secrets.FLOX_CACHE_AWS_ACCESS_KEY_ID }}"
-          aws-secret-access-key:    "${{ secrets.FLOX_CACHE_AWS_SECRET_ACCESS_KEY }}"
+          aws-access-key-id:        "${{ secrets.FLOX_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
+          aws-secret-access-key:    "${{ secrets.FLOX_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
           ssh-key:                  "${{ secrets.FLOXBOT_SSH_KEY }}"
           remote-builders:          "${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}"
 
