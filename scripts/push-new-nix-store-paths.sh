@@ -9,4 +9,7 @@ if [ -z "$FLOX_SUBSTITUTER" ]; then
 fi
 
 # Allow pushing to fail.
+
+# copy the outputs of drv-paths
 cat /tmp/drv-paths | xargs -I{} -r nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" {}^* -vv||:;
+cat /tmp/drv-paths | xargs -I{} -r nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" {} -vv||:;
