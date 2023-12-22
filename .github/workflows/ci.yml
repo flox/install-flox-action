@@ -115,8 +115,8 @@ jobs:
         uses: "./"
         with:
           github-access-token:      "${{ secrets.NIX_GIT_TOKEN }}"
-          substituter:              "${{ vars.FLOX_CACHE_BUCKET_PUBLIC }}"
-          substituter-key:          "${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}"
+          substituter:              "${{ vars.FLOX_CACHE_PUBLIC_BUCKET }}"
+          substituter-key:          "${{ secrets.FLOX_CACHE_PUBLIC_NIX_SECRET_KEY }}"
           aws-access-key-id:        "${{ secrets.FLOX_CACHE_AWS_ACCESS_KEY_ID }}"
           aws-secret-access-key:    "${{ secrets.FLOX_CACHE_AWS_SECRET_ACCESS_KEY }}"
           ssh-key:                  "${{ secrets.FLOXBOT_SSH_KEY }}"
@@ -172,8 +172,8 @@ jobs:
         uses: "./"
         with:
           github-access-token:      "${{ secrets.NIX_GIT_TOKEN }}"
-          substituter:              "${{ vars.FLOX_CACHE_BUCKET_PUBLIC }}"
-          substituter-key:          "${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}"
+          substituter:              "${{ vars.FLOX_CACHE_PUBLIC_BUCKET }}"
+          substituter-key:          "${{ secrets.FLOX_CACHE_PUBLIC_NIX_SECRET_KEY }}"
           aws-access-key-id:        "${{ secrets.FLOX_CACHE_AWS_ACCESS_KEY_ID }}"
           aws-secret-access-key:    "${{ secrets.FLOX_CACHE_AWS_SECRET_ACCESS_KEY }}"
           ssh-key:                  "${{ secrets.FLOXBOT_SSH_KEY }}"
