@@ -8,10 +8,8 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
   sudo systemctl daemon-reload
   sudo systemctl restart nix-daemon.service
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
-  sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-  sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist
-  # for some reason running this twice restarts the service
-  sudo launchctl kickstart -k -p system/org.nixos.nix-daemon
+  sudo launchctl bootout system /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+  sudo launchctl bootstrap system /Library/LaunchDaemons/org.nixos.nix-daemon.plist
   sudo launchctl kickstart -k -p system/org.nixos.nix-daemon
 else
   echo "Unsupported OS: $RUNNER_OS"
