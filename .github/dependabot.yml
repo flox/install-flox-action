@@ -1,10 +1,10 @@
 version: 2
 updates:
 
-- package-ecosystem: github-actions
+- package-ecosystem: "github-actions"
   directory: "/"
   schedule:
-    interval: weekly
+    interval: "weekly"
   open-pull-requests-limit: 1
   commit-message:
       prefix: "chore"
@@ -13,11 +13,14 @@ updates:
     all:
       patterns:
         - "*"
+  labels:
+    - "chore"
+    - "team-developer-support"
 
-- package-ecosystem: npm
+- package-ecosystem: "npm"
   directory: '/'
   schedule:
-    interval: weekly
+    interval: "weekly"
   open-pull-requests-limit: 1
   commit-message:
       prefix: "chore"
@@ -26,4 +29,7 @@ updates:
     all:
       patterns:
         - "*"
+  labels:
+    - "chore"
+    - "team-developer-support"
 
