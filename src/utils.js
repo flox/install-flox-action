@@ -9,7 +9,6 @@ const ghRunnerHash = md5(
 )
 const ghJobId = process.env.GITHUB_JOB
 
-export const OLD_BASE_URL = 'https://flox.dev/downloads'
 export const GH_CACHE_KEY = `nix-cache-${ghWorkflowHash}-${ghRunnerHash}-${ghJobId}`
 
 export const GH_CACHE_PATHS = ['~/.cache/nix']
@@ -49,11 +48,8 @@ export async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
   const dpkg = await which('dpkg', { nothrow: true })
 
-  const BASE_URL = core.getInput('base-url') || OLD_BASE_URL
+  const BASE_URL = core.getInput('base-url')
   core.debug(`Base URL is: ${BASE_URL}`)
-
-  const deb_folder = BASE_URL === OLD_BASE_URL ? 'debian-archive' : 'deb'
-  const rpm_folder = BASE_URL === OLD_BASE_URL ? 'yumrepo' : 'rpm'
 
   let downloadUrl
 
@@ -66,25 +62,25 @@ export async function getDownloadUrl() {
     process.platform === 'linux' &&
     process.arch === 'x64'
   ) {
-    downloadUrl = `${BASE_URL}/${deb_folder}/flox.x86_64-linux.deb`
+    downloadUrl = `${BASE_URL}/deb/flox.x86_64-linux.deb`
   } else if (
     dpkg !== null &&
     process.platform === 'linux' &&
     process.arch === 'arm64'
   ) {
-    downloadUrl = `${BASE_URL}/${deb_folder}/flox.aarch64-linux.deb`
+    downloadUrl = `${BASE_URL}/deb/flox.aarch64-linux.deb`
   } else if (
     rpm !== null &&
     process.platform === 'linux' &&
     process.arch === 'x64'
   ) {
-    downloadUrl = `${BASE_URL}/${rpm_folder}/flox.x86_64-linux.rpm`
+    downloadUrl = `${BASE_URL}/rpm/flox.x86_64-linux.rpm`
   } else if (
     rpm !== null &&
     process.platform === 'linux' &&
     process.arch === 'arm64'
   ) {
-    downloadUrl = `${BASE_URL}/${rpm_folder}/flox.aarch64-linux.rpm`
+    downloadUrl = `${BASE_URL}/rpm/flox.aarch64-linux.rpm`
   } else {
     core.setFailed(
       `No platform (${process.platform}) or arch (${process.arch}) or OS matched.`
