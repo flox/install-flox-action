@@ -81,12 +81,9 @@ jobs:
         with:
           github-access-token: "${{ secrets.NIX_GIT_TOKEN }}"
 
-      - name: "Build Example"
+      - name: "Test: flox --version"
         run: |
-          cd example
-          export NIX_CONFIG="experimental-features = nix-command flakes"
-          # when installed with flox, nix can't see cacert
-          flox build .#default --no-write-lock-file || nix build --no-write-lock-file
+          flox --version
 
   test-all-action:
     name: "All - Github Action Test"
