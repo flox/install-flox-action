@@ -10,7 +10,7 @@ inputs:
 
   base-url:
     description: "Download base URL of flox installer"
-    default: "https://downloads.flox.dev/by-channel/nightly"
+    default: "https://downloads.flox.dev/by-env/stable"
 
   git-user:
     description: "Name of the `author` and `commiter` in git if not set already"
