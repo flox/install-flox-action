@@ -22,7 +22,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "macos-latest"
+          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
 
     steps:
       - name: "Checkout"
@@ -66,7 +66,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "macos-latest"
+          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
         # TODO: test with different flox versions
         #flox-version:
         #  - stable
@@ -93,7 +93,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "macos-latest"
+          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
 
     steps:
       - name: "Checkout"
@@ -145,7 +145,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "macos-latest"
+          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
 
     steps:
       - name: "Checkout"
