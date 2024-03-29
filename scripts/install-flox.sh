@@ -17,7 +17,9 @@ fi
 echo "Downloading flox..."
 
 DOWNLOADED_FILE=$(basename $INPUT_DOWNLOAD_URL)
-curl "$INPUT_DOWNLOAD_URL" --output "$DOWNLOADED_FILE";
+curl --user-agent "install-flox-action" \
+    "$INPUT_DOWNLOAD_URL" \
+    --output "$DOWNLOADED_FILE";
 
 
 echo "Installing flox..."
