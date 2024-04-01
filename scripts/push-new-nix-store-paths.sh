@@ -17,5 +17,5 @@ if [ -f /tmp/drv-paths ]; then
 	cat /tmp/drv-paths | xargs nix-store --query --requisites --include-outputs > /tmp/dependency-paths-outputs ||:;
 	cat /tmp/drv-paths | xargs nix-store --query --requisites  > /tmp/dependency-paths ||:;
 	# only copy the binary portions of the build-time dependencies
-	awk 'NR==FNR{a[$0]=1;next}!a[$0]' /tmp/dependency-paths /tmp/dependecy-paths-outputs | xargs nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" ||:;
+	awk 'NR==FNR{a[$0]=1;next}!a[$0]' /tmp/dependency-paths /tmp/dependency-paths-outputs | xargs nix copy --extra-experimental-features nix-command --to "$FLOX_SUBSTITUTER" ||:;
 fi
