@@ -47,7 +47,7 @@ jobs:
 
       - name: "Install Dependencies"
         if: steps.cache.outputs.cache-hit != 'true'
-        run: nix develop --command npm ci
+        run: nix develop --command npm ci --legacy-peer-deps
 
       - name: "Check Format"
         run: nix develop --command npm run format:check
