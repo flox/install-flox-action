@@ -76,7 +76,7 @@ jobs:
       - name: "Test Local Action"
         uses: "./"
         with:
-          github-access-token: "${{ secrets.NIX_GIT_TOKEN }}"
+          github-access-token: "${{ secrets.MANAGED_GITHUB_ACCESS_TOKEN }}"
 
       - name: "Test: flox --version"
         run: |
@@ -100,20 +100,20 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         uses: "tailscale/github-action@v2"
         with:
-          args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
+          args: "--timeout 30s --login-server ${{ vars.MANAGED_TAILSCALE_URL }}"
           tags: tag:ci
-          authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
+          authkey: "${{ secrets.MANAGED_TAILSCALE_AUTH_KEY }}"
 
       - name: "Test Local Action"
         uses: "./"
         with:
-          github-access-token:      "${{ secrets.NIX_GIT_TOKEN }}"
-          substituter:              "${{ vars.FLOX_CACHE_PUBLIC_BUCKET }}"
-          substituter-key:          "${{ secrets.FLOX_CACHE_PUBLIC_NIX_SECRET_KEY }}"
-          aws-access-key-id:        "${{ secrets.FLOX_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
-          aws-secret-access-key:    "${{ secrets.FLOX_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
-          ssh-key:                  "${{ secrets.FLOXBOT_SSH_KEY }}"
-          remote-builders:          "${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}"
+          github-access-token:    "${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}"
+          substituter:            "${{    vars.MANAGED_CACHE_PUBLIC_S3_BUCKET }}"
+          substituter-key:        "${{ secrets.MANAGED_CACHE_PUBLIC_SECRET_KEY }}"
+          aws-access-key-id:      "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
+          aws-secret-access-key:  "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
+          ssh-key:                "${{ secrets.MANAGED_FLOXBOT_SSH_KEY }}"
+          remote-builders:        "${{ runner.os == 'Linux' && vars.MANAGED_REMOTE_BUILDERS || '' }}"
 
       - name: "Test Remote Builders"
         if: ${{ runner.os == 'Linux' }} # tailscale Action does not work on MacOS
@@ -157,20 +157,20 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         uses: "tailscale/github-action@v2"
         with:
-          args: "--timeout 30s --login-server ${{ vars.TAILSCALE_URL }}"
+          args: "--timeout 30s --login-server ${{ vars.MANAGED_TAILSCALE_URL }}"
           tags: tag:ci
-          authkey: "${{ secrets.TAILSCALE_AUTH_KEY }}"
+          authkey: "${{ secrets.MANAGED_TAILSCALE_AUTH_KEY }}"
 
       - name: "Test Local Action"
         uses: "./"
         with:
-          github-access-token:      "${{ secrets.NIX_GIT_TOKEN }}"
-          substituter:              "${{ vars.FLOX_CACHE_PUBLIC_BUCKET }}"
-          substituter-key:          "${{ secrets.FLOX_CACHE_PUBLIC_NIX_SECRET_KEY }}"
-          aws-access-key-id:        "${{ secrets.FLOX_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
-          aws-secret-access-key:    "${{ secrets.FLOX_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
-          ssh-key:                  "${{ secrets.FLOXBOT_SSH_KEY }}"
-          remote-builders:          "${{ runner.os == 'Linux' && secrets.FLOX_BUILDERS || '' }}"
+          github-access-token:    "${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}"
+          substituter:            "${{    vars.MANAGED_CACHE_PUBLIC_S3_BUCKET }}"
+          substituter-key:        "${{ secrets.MANAGED_CACHE_PUBLIC_SECRET_KEY }}"
+          aws-access-key-id:      "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
+          aws-secret-access-key:  "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
+          ssh-key:                "${{ secrets.MANAGED_FLOXBOT_SSH_KEY }}"
+          remote-builders:        "${{ runner.os == 'Linux' && vars.MANAGED_REMOTE_BUILDERS || '' }}"
 
       - name: "Test Remote Builders"
         if: ${{ runner.os == 'Linux' }}
@@ -206,7 +206,7 @@ jobs:
         env:
           SLACK_TITLE:      "Something broke CI for flox/flox on main"
           SLACK_FOOTER:     "Thank you for caring"
-          SLACK_WEBHOOK:    "${{ secrets.SLACK_WEBHOOK_FOR_TEAM_ENGINEERING}}"
+          SLACK_WEBHOOK:    "${{ secrets.MANAGED_SLACK_WEBHOOK }}"
           SLACK_USERNAME:   "GitHub"
           SLACK_ICON_EMOJI: ":poop:"
           SLACK_COLOR:      "#ff2800"  # ferrari red -> https://encycolorpedia.com/ff2800
