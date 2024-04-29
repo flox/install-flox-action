@@ -113,7 +113,7 @@ jobs:
           aws-access-key-id:      "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
           aws-secret-access-key:  "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
           ssh-key:                "${{ secrets.MANAGED_FLOXBOT_SSH_KEY }}"
-          remote-builders:        "${{ runner.os == 'Linux' && secrets.MANAGED_REMOTE_BUILDERS || '' }}"
+          remote-builders:        "${{ runner.os == 'Linux' && vars.MANAGED_REMOTE_BUILDERS || '' }}"
 
       - name: "Test Remote Builders"
         if: ${{ runner.os == 'Linux' }} # tailscale Action does not work on MacOS
@@ -170,7 +170,7 @@ jobs:
           aws-access-key-id:      "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
           aws-secret-access-key:  "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
           ssh-key:                "${{ secrets.MANAGED_FLOXBOT_SSH_KEY }}"
-          remote-builders:        "${{ runner.os == 'Linux' && secrets.MANAGED_REMOTE_BUILDERS || '' }}"
+          remote-builders:        "${{ runner.os == 'Linux' && vars.MANAGED_REMOTE_BUILDERS || '' }}"
 
       - name: "Test Remote Builders"
         if: ${{ runner.os == 'Linux' }}
