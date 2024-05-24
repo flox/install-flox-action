@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+echo 'I start...'
+
+set -exuo pipefail
 
 # Ensure ssh-keyscan is available
 command -v ssh-keyscan >/dev/null 2>&1 || {

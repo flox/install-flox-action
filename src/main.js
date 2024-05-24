@@ -31,9 +31,7 @@ export async function run() {
   utils.exportVariableFromInput('ssh-auth-sock')
   if (sshKeyFormat) {
     core.startGroup('Configure SSH')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh], {
-      detached: true
-    })
+    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh])
     core.endGroup()
   }
 
