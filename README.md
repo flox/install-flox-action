@@ -49,9 +49,12 @@
 Installs [flox][flox-github] on GitHub Actions for the supported platforms:
 Linux and macOS.
 
-[flox][flox-website] is a command line tool that helps you **manage your
-environments**. flox builds on top of the powerful ideas of [Nix][nix-website]
-as well as making them accessible to everybody.
+[Flox][website] is a virtual environment and package manager all in one. With Flox you 
+create environments that layer and replace dependencies just where
+it matters, making them portable across the full software lifecycle.
+
+Install packages from [the biggest open source repository
+(nixpkgs)][post-nixpkgs] that contains **more than 80.000 packages**.
 
 
 ## ⭐ Getting Started
@@ -79,66 +82,6 @@ jobs:
     - name: Build
       run: flox build
 ```
-
-### 🚀 Add caching for faster CI
-
-Caching with flox can be achieved by configuring what is known as
-`substituter`.
-
-You can see in an example below how to configure your GitHub workflow to **push
-build artifacts** to a remote location. In the case of this example it is an
-AWS S3 Bucket. 
-
-With caching configured all subsequent builds will be faster since flox does
-not have to build them again.
-
-See [nix help-stores][nix-help-stores] for more information on the supported
-URIs.
-
-```yml
-name: "CI"
-
-on:
-  push:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Install flox
-      uses: flox/install-flox-action@v2
-      with:
-        substituter: s3://your-cache-here # see `nix help-stores` for supported uris
-        substituter-key: ${{ secrets.FLOX_STORE_PUBLIC_NIX_SECRET_KEY }}
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-    - name: Build
-      run: |
-        flox build
-```
-
-## Builders
-
-Can configure remote builders via:
-
-```
-        remote-builders: |
-            ssh://user@host x86_64-linux /ssh-key - - - - <base64_ssh_host_key>
-            ssh://user@host aarch64-linux /ssh-key - - - - <base64_ssh_host_key>
-            ssh://user@host x86_64-darwin /ssh-key - - - - <base64_ssh_host_key>
-            ssh://user@host aarch64-darwin /ssh-key - - - - <base64_ssh_host_key>
-```
-
-[Read more][distributed-builds] about the remote builders format.
-
-
-[distributed-builds]: https://nixos.org/manual/nix/unstable/advanced-topics/distributed-builds
-
 
 ## 📫 Have a question? Want to chat? Ran into a problem?
 
@@ -169,3 +112,4 @@ The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
 [discord]: https://discord.gg/5H7hN57eQR
 [nix-website]: https://nixos.org
 [nix-help-stores]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-help-stores.html
+[post-nixpkgs]: https://flox.dev/blog/nixpkgs
