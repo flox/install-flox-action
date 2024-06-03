@@ -55,8 +55,8 @@ jobs:
       - name: "Test"
         run: nix develop --command npm run ci-test
 
-  test-minimal-action:
-    name: "Minimal - Github Action Test"
+  test-action:
+    name: "Github Action Test"
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -82,112 +82,6 @@ jobs:
         run: |
           flox --version
 
-  test-all-action:
-    name: "All - Github Action Test"
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os:
-          - "ubuntu-latest"
-          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
-
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v4"
-
-      - name: "Setup Tailscale"
-        if: ${{ runner.os == 'Linux' }}
-        uses: "tailscale/github-action@v2"
-        with:
-          args: "--timeout 30s --login-server ${{ vars.MANAGED_TAILSCALE_URL }}"
-          tags: tag:ci
-          authkey: "${{ secrets.MANAGED_TAILSCALE_AUTH_KEY }}"
-
-      - name: "Test Local Action"
-        uses: "./"
-        with:
-          github-access-token:    "${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}"
-          substituter:            "${{    vars.MANAGED_CACHE_PUBLIC_S3_BUCKET }}"
-          substituter-key:        "${{ secrets.MANAGED_CACHE_PUBLIC_SECRET_KEY }}"
-          aws-access-key-id:      "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
-          aws-secret-access-key:  "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
-          ssh-key:                "${{ secrets.MANAGED_FLOXBOT_SSH_KEY }}"
-          remote-builders:        "${{ runner.os == 'Linux' && vars.MANAGED_REMOTE_BUILDERS || '' }}"
-
-      - name: "Test Remote Builders"
-        if: ${{ runner.os == 'Linux' }} # tailscale Action does not work on MacOS
-        env:
-          # XXX: This is needed until we are in this limbo state and our "new" ui is
-          # not ready yet
-          FLOX_BASH_PASSTHRU: true
-        run: |
-          export NIX_CONFIG="experimental-features = nix-command flakes"
-          RAND=$RANDOM
-          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -vv -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          cd example
-          nix build --no-write-lock-file
-
-          echo "contents of /tmp/drv-paths:"
-          cat /tmp/drv-paths
-
-  test-nix-action:
-    name: "Nix - test integration with Nix"
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os:
-          - "ubuntu-latest"
-          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
-
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v4"
-
-      - name: "Install Nix"
-        uses: "cachix/install-nix-action@V27"
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-
-      - name: "Setup Tailscale"
-        if: ${{ runner.os == 'Linux' }}
-        uses: "tailscale/github-action@v2"
-        with:
-          args: "--timeout 30s --login-server ${{ vars.MANAGED_TAILSCALE_URL }}"
-          tags: tag:ci
-          authkey: "${{ secrets.MANAGED_TAILSCALE_AUTH_KEY }}"
-
-      - name: "Test Local Action"
-        uses: "./"
-        with:
-          github-access-token:    "${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}"
-          substituter:            "${{    vars.MANAGED_CACHE_PUBLIC_S3_BUCKET }}"
-          substituter-key:        "${{ secrets.MANAGED_CACHE_PUBLIC_SECRET_KEY }}"
-          aws-access-key-id:      "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_ACCESS_KEY_ID }}"
-          aws-secret-access-key:  "${{ secrets.MANAGED_CACHE_PUBLIC_AWS_SECRET_ACCESS_KEY }}"
-          ssh-key:                "${{ secrets.MANAGED_FLOXBOT_SSH_KEY }}"
-          remote-builders:        "${{ runner.os == 'Linux' && vars.MANAGED_REMOTE_BUILDERS || '' }}"
-
-      - name: "Test Remote Builders"
-        if: ${{ runner.os == 'Linux' }}
-        env:
-          # XXX: This is needed until we are in this limbo state and our "new" ui is
-          # not ready yet
-          FLOX_BASH_PASSTHRU: true
-        run: |
-          export NIX_CONFIG="experimental-features = nix-command flakes"
-          RAND=$RANDOM
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "x86_64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          nix build -L --impure --expr '(with import <nixpkgs> { system = "aarch64-darwin"; }; runCommand "foo-'"$RAND"'" {} "uname -mo > $out")'
-          cd example
-          nix build --no-write-lock-file
-
   report-failure:
     name: "Report Failure"
     runs-on: "ubuntu-latest"
@@ -196,9 +90,7 @@ jobs:
 
     needs:
       - "test-javascript"
-      - "test-minimal-action"
-      - "test-all-action"
-      - "test-nix-action"
+      - "test-action"
 
     steps:
       - name: "Slack Notification"
