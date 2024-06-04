@@ -1,101 +1,71 @@
-const cache = require('@actions/cache')
 const core = require('@actions/core')
 const exec = require('@actions/exec')
-const utils = require('./utils')
+const path = require('path')
 const which = require('which')
 
+export function scriptPath(name) {
+  return path.join(__dirname, '..', 'scripts', name)
+}
+
+const INSTALL_FLOX_SCRIPT = scriptPath('install-flox.sh')
+
+export async function getDownloadUrl() {
+  const rpm = await which('rpm', { nothrow: true })
+  const dpkg = await which('dpkg', { nothrow: true })
+
+  const BASE_URL = core.getInput('base-url')
+  core.debug(`Base URL is: ${BASE_URL}`)
+
+  let downloadUrl
+
+  if (process.platform === 'darwin' && process.arch === 'x64') {
+    downloadUrl = `${BASE_URL}/osx/flox.x86_64-darwin.pkg`
+  } else if (process.platform === 'darwin' && process.arch === 'arm64') {
+    downloadUrl = `${BASE_URL}/osx/flox.aarch64-darwin.pkg`
+  } else if (
+    dpkg !== null &&
+    process.platform === 'linux' &&
+    process.arch === 'x64'
+  ) {
+    downloadUrl = `${BASE_URL}/deb/flox.x86_64-linux.deb`
+  } else if (
+    dpkg !== null &&
+    process.platform === 'linux' &&
+    process.arch === 'arm64'
+  ) {
+    downloadUrl = `${BASE_URL}/deb/flox.aarch64-linux.deb`
+  } else if (
+    rpm !== null &&
+    process.platform === 'linux' &&
+    process.arch === 'x64'
+  ) {
+    downloadUrl = `${BASE_URL}/rpm/flox.x86_64-linux.rpm`
+  } else if (
+    rpm !== null &&
+    process.platform === 'linux' &&
+    process.arch === 'arm64'
+  ) {
+    downloadUrl = `${BASE_URL}/rpm/flox.aarch64-linux.rpm`
+  } else {
+    core.setFailed(
+      `No platform (${process.platform}) or arch (${process.arch}) or OS matched.`
+    )
+  }
+
+  core.info(`DOWNLOAD_URL resolved to ${downloadUrl}`)
+  core.exportVariable('INPUT_DOWNLOAD_URL', downloadUrl)
+
+  return downloadUrl
+}
+
 export async function run() {
+  core.startGroup('Download & Install flox')
   const nix = await which('nix', { nothrow: true })
   if (nix === null) {
-    core.startGroup('Download & Install flox')
-    await utils.getDownloadUrl()
-    await exec.exec('bash', ['-c', utils.SCRIPTS.installFlox])
-    core.endGroup()
+    await getDownloadUrl()
+    await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
+  } else {
+    core.setFailed(`Nix found at ${nix}! Please remove it to use flox.`)
   }
-
-  core.startGroup('Configure Git')
-  utils.exportVariableFromInput('git-user')
-  utils.exportVariableFromInput('git-email')
-  await exec.exec('bash', ['-c', utils.SCRIPTS.configureGit])
-  core.endGroup()
-
-  const githubAccessToken = utils.exportVariableFromInput('github-access-token')
-  if (githubAccessToken) {
-    core.startGroup('Configure Github')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureGithub])
-    core.endGroup()
-  }
-
-  const sshKeyFormat = utils.exportVariableFromInput('ssh-key-format')
-  utils.exportVariableFromInput('ssh-key')
-  utils.exportVariableFromInput('ssh-auth-sock')
-  if (sshKeyFormat) {
-    core.startGroup('Configure SSH')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSsh], {
-      detached: true
-    })
-    core.endGroup()
-  }
-
-  const substituter = utils.exportVariableFromInput('substituter')
-  const substituterKey = utils.exportVariableFromInput('substituter-key')
-  utils.exportVariableFromInput('substituter-options')
-  if (substituter && substituterKey) {
-    core.startGroup('Configure Substituter')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureSubstituter])
-    core.endGroup()
-    core.startGroup('Configure Post Build Hook')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configurePostBuildHook])
-    core.endGroup()
-  }
-
-  const remoteBuilders = utils.exportVariableFromInput('remote-builders')
-  if (remoteBuilders !== null && remoteBuilders !== '') {
-    core.startGroup('Configure Builders')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureBuilders])
-    core.endGroup()
-  }
-
-  const awsAccessKeyId = utils.exportVariableFromInput('aws-access-key-id')
-  const awsSecretAccessKey = utils.exportVariableFromInput(
-    'aws-secret-access-key'
-  )
-  if (awsAccessKeyId && awsSecretAccessKey) {
-    core.startGroup('Configure AWS')
-    await exec.exec('bash', ['-c', utils.SCRIPTS.configureAWS])
-    core.endGroup()
-  }
-
-  core.startGroup('Restart Nix Daemon')
-  await exec.exec('bash', ['-c', utils.SCRIPTS.restartNixDaemon])
-  core.endGroup()
-
-  const flox = await which('flox', { nothrow: true })
-  if (flox !== null) {
-    core.startGroup('Checking Flox Version')
-    await exec.exec('flox', ['--version'])
-    core.endGroup()
-  }
-
-  core.startGroup('Checking Nix Version')
-  await exec.exec('nix', ['--version'])
-  await exec.exec('nix', [
-    'store',
-    'ping',
-    '--extra-experimental-features',
-    'nix-command'
-  ])
-  core.endGroup()
-
-  core.startGroup('Record Nix Store Paths')
-  await exec.exec('bash', ['-c', utils.SCRIPTS.recordNixStorePaths])
-  core.endGroup()
-
-  core.startGroup('Restore Nix Cache')
-  const cacheKey = await cache.restoreCache(
-    utils.GH_CACHE_PATHS.slice(),
-    utils.GH_CACHE_KEY,
-    utils.GH_CACHE_RESTORE_KEYS.slice()
-  )
   core.endGroup()
 }

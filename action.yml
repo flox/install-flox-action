@@ -12,43 +12,6 @@ inputs:
     description: "Download base URL of flox installer"
     default: "https://downloads.flox.dev/by-env/stable"
 
-  git-user:
-    description: "Name of the `author` and `commiter` in git if not set already"
-    default: "Example User"
-  git-email:
-    description: "Email of the `author` and `commiter` in git if not set already"
-    default: "git@example.invalid"
-
-  github-access-token:
-    description: "GitHub access token to use when using the GitHub fetcher"
-
-  ssh-key:
-    description: "SSH key to use when fetching over SSH"
-  ssh-key-format:
-    description: "Format of ssh-key or format to generate"
-    default: "ed25519"
-  ssh-auth-sock:
-    description: "Used to set SSH_AUTH_SOCK variable, used by some Nix fetchers"
-
-  substituter:
-    description: "Default substituter to use for uploads"
-  substituter-options:
-    description: "Default substituter options"
-    default: "?secret-key=/tmp/secret-key&write-nar-listing=1&ls-compression=br&compression=zstd"
-  substituter-key:
-    description: "Substituter key created by `nix key generate-secret`"
-
-  remote-builders:
-    description: "Default remote builders to use for builds"
-    default: ""
-    example: "ssh-ng://nixbld@fd7a:115c:a1e0::f  x86_64-linux   /etc/ssh/ssh_host_ed25519_key 1 0 kvm,big-parallel,nixos-test,benchmark - c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUZKUWVLUDkvUDBreG9FMGZUZVYyMFdkZnZYVlBWUGUrd2IyWkRuUitTSzAgcm9vdEBpcC0xMC0wLTEwLTIyMy5lYzIuaW50ZXJuYWwK"
-
-  aws-access-key-id:
-    description: "AWS access key to upload"
-  aws-secret-access-key:
-    description: "AWS secret key to upload"
-
 runs:
   using: 'node20'
   main: 'dist/index.js'
-  post: 'dist/index.js'

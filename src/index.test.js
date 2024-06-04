@@ -1,12 +1,12 @@
 const main = require('./main')
-const post = require('./post')
+//const post = require('./post')
 
 jest.mock('./main', () => ({
   run: jest.fn()
 }))
-jest.mock('./post', () => ({
-  run: jest.fn()
-}))
+//jest.mock('./post', () => ({
+//  run: jest.fn()
+//}))
 
 describe('index', () => {
   afterEach(() => {
@@ -17,7 +17,7 @@ describe('index', () => {
     require('./index')
 
     expect(main.run).toHaveBeenCalled()
-    expect(post.run).not.toHaveBeenCalled()
+    //expect(post.run).not.toHaveBeenCalled()
   })
 
   //it('calls post.run when imported', async () => {
