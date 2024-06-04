@@ -22,7 +22,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
+          - "macos-latest"
 
     steps:
       - name: "Checkout"
@@ -63,11 +63,10 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
-          - "ghcr.io/cirruslabs/macos-sonoma-xcode:latest"
-        # TODO: test with different flox versions
-        #flox-version:
-        #  - stable
-        #  - prerelease
+          - "macos-latest"
+        release-env:
+          - stable
+          - nightly
 
     steps:
       - name: "Checkout"
@@ -76,7 +75,7 @@ jobs:
       - name: "Test Local Action"
         uses: "./"
         with:
-          github-access-token: "${{ secrets.MANAGED_GITHUB_ACCESS_TOKEN }}"
+          base-url: "https://downloads.flox.dev/by-env/${release-env}"
 
       - name: "Test: flox --version"
         run: |
