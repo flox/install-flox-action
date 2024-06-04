@@ -71,7 +71,7 @@
     "make-coverage-badge": "^1.2.0",
     "md5": "^2.3.0",
     "patch-package": "^8.0.0",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.0",
     "which": "^4.0.0"
   }
 }
