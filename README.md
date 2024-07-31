@@ -49,7 +49,7 @@
 Installs [flox][flox-github] on GitHub Actions for the supported platforms:
 Linux and macOS.
 
-[Flox][website] is a virtual environment and package manager all in one. With Flox you 
+[Flox][flox-website] is a virtual environment and package manager all in one. With Flox you 
 create environments that layer and replace dependencies just where
 it matters, making them portable across the full software lifecycle.
 
