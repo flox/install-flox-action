@@ -75,7 +75,7 @@ jobs:
       - name: "Test Local Action"
         uses: "./"
         with:
-          base-url: "https://downloads.flox.dev/by-env/${{ matrix.release-env }}"
+          channel: "${{ matrix.release-env }}"
 
       - name: "Test: flox --version"
         run: |
