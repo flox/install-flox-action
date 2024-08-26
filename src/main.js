@@ -7,11 +7,9 @@ export function scriptPath(name) {
   return path.join(__dirname, '..', 'scripts', name)
 }
 
-
 const INSTALL_FLOX_SCRIPT = scriptPath('install-flox.sh')
 const DEFAULT_BASE_URL = 'https://downloads.flox.dev/by-env/stable'
 const CHANNELS = ['stable', 'qa', 'nightly']
-
 
 export async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
@@ -20,7 +18,7 @@ export async function getDownloadUrl() {
   let BASE_URL = 'https://downloads.flox.dev'
   if (core.getInput('base-url') !== '') {
     BASE_URL = DEFAULT_BASE_URL
-  } else if (CHANNELS.includes(core.getInput('channel'))){
+  } else if (CHANNELS.includes(core.getInput('channel'))) {
     BASE_URL = `${DEFAULT_BASE_URL}/by-env/${core.getInput('channel')}`
   } else {
     BASE_URL = `${DEFAULT_BASE_URL}/by-commit/${core.getInput('channel')}`
