@@ -8,9 +8,18 @@ branding:
 
 inputs:
 
+  version:
+    description: "Select a specific version from a channel."
+    default: ""
+
+  channel:
+    description: "One of the following: stable, qa, nightly or specify a commit."
+    default: "stable"
+
   base-url:
+    deprecationMessage: "Please use channel option"
     description: "Download base URL of flox installer"
-    default: "https://downloads.flox.dev/by-env/stable"
+    default: ""
 
 runs:
   using: 'node20'
