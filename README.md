@@ -1,26 +1,16 @@
 <h1 align="center">
   <a href="https://flox.dev" target="_blank">
     <picture>
-      <source media="(prefers-color-scheme: dark)"  srcset="img/flox_orange_small.png" />
-      <source media="(prefers-color-scheme: light)" srcset="img/flox_blue_small.png" />
-      <img src="img/flox_blue_small.png" alt="flox logo" />
+      <source media="(prefers-color-scheme: dark)"  srcset="img/flox-logo-white-on-black.png" />
+      <source media="(prefers-color-scheme: light)" srcset="img/flox-logo-black-on-white.png" />
+      <img src="img/flox-logo-black-on-white.png" alt="flox logo" />
     </picture>
   </a>
 </h1>
 
 <h2 align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)"  srcset="img/harness_the_power_of_nix_dark.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="img/harness_the_power_of_nix_light.svg" />
-    <img height="24" src="img/harness_the_power_of_nix_light.svg" alt="Harness the Power of Nix" />
-  </picture>
+  Developer environments you can take with you
 </h2>
-
-<!-- TODO: here comes the graphic
- show immediate value proposition
- a short demo of basics would be good for now
- a bold statement: Free yourself from container walls.
--->
 
 <h3 align="center">
    &emsp;
@@ -35,10 +25,10 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/flox/install-flox-action/blog/main/LICENSE">
+  <a href="https://github.com/flox/install-flox-action/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/flox/install-flox-action?style=flat-square">
   </a>
-  <a href="https://github.com/flox/install-flox-action/blog/main/CONTRIBUTING.md">
+  <a href="https://github.com/flox/flox/blob/main/CONTRIBUTING.md">
     <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square"/>
   </a>
   <a href="https://github.com/flox/install-flox-action/releases">
