@@ -44,3 +44,6 @@ case $DOWNLOADED_FILE in
     exit 1;
     ;;
 esac
+
+# Remove downloaded file
+rm $DOWNLOADED_FILE
