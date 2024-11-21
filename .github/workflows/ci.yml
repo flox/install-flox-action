@@ -12,11 +12,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FLOX_DISABLE_METRICS: "true"
+
 jobs:
 
   test-javascript:
     name: "JavaScript Tests"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     strategy:
       matrix:
@@ -58,6 +62,7 @@ jobs:
   test-action:
     name: "Github Action Test"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     strategy:
       matrix:
@@ -84,6 +89,7 @@ jobs:
   report-failure:
     name: "Report Failure"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 30
 
     if: ${{ failure() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule') }}
 

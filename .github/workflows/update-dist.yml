@@ -19,6 +19,9 @@ on:
       - '**.md'
   workflow_dispatch:
 
+env:
+  FLOX_DISABLE_METRICS: "true"
+
 jobs:
   check-dist:
     name: "Check dist/"
