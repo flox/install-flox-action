@@ -16,6 +16,10 @@ inputs:
     description: "One of the following: stable, qa, nightly or specify a commit."
     default: "stable"
 
+  disable-metrics:
+    description: "Disable sending anonymous usage statistics to flox"
+    default: "false"
+
   base-url:
     deprecationMessage: "Please use channel option"
     description: "Download base URL of flox installer"
