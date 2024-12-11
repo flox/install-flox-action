@@ -31,7 +31,7 @@
     "ci-test": "jest",
     "format:write": "prettier --write **/*.js",
     "format:check": "prettier --check **/*.js",
-    "package": "ncc build src/index.js --license licenses.txt",
+    "package": "ncc build src/index.js --license LICENSE",
     "package:watch": "npm run package -- --watch",
     "test": "(jest && make-coverage-badge --output-path ./badges/coverage.svg) || make-coverage-badge --output-path ./badges/coverage.svg",
     "all": "npm run format:write && npm run test && npm run package"
