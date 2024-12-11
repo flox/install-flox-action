@@ -81,10 +81,16 @@ jobs:
         uses: "./"
         with:
           channel: "${{ matrix.release-env }}"
+          disable-metrics: true
+
 
       - name: "Test: flox --version"
         run: |
           flox --version
+
+      - name: "Test: flox config"
+        run: |
+          flox config
 
   report-failure:
     name: "Report Failure"
