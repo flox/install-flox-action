@@ -90,7 +90,11 @@ jobs:
 
       - name: "Test: flox config"
         run: |
-          flox config
+          export disable_metrics_value="$(flox config --list | grep 'disable_metrics' | cut -d' ' -f3)"
+          if [[ "$disable_metrics_value" != "true" ]]; then
+            echo "Expected 'disable_metrics' to be 'true' but got '$disable_metrics_value'"
+            exit 1
+          fi
 
   report-failure:
     name: "Report Failure"
