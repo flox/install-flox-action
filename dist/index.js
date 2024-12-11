@@ -26310,6 +26310,9 @@ async function getDownloadUrl() {
     version = '-' + core.getInput('version')
   }
 
+  const disable_metrics = core.getInput('disable-metrics')
+  core.exportVariable('DISABLE_METRICS', disable_metrics)
+
   let downloadUrl
 
   if (process.platform === 'darwin' && process.arch === 'x64') {
