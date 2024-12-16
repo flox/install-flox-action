@@ -16,7 +16,7 @@ fi
 
 echo "Downloading flox..."
 
-DOWNLOADED_FILE=$(basename $INPUT_DOWNLOAD_URL)
+DOWNLOADED_FILE=$(basename "$INPUT_DOWNLOAD_URL")
 curl --user-agent "install-flox-action" \
     "$INPUT_DOWNLOAD_URL" \
     --output "$DOWNLOADED_FILE";
@@ -46,4 +46,9 @@ case $DOWNLOADED_FILE in
 esac
 
 # Remove downloaded file
-rm $DOWNLOADED_FILE
+rm "$DOWNLOADED_FILE"
+
+if [[ true == "$DISABLE_METRICS" ]]; then
+  echo "Disabling metrics..."
+  flox config --set-bool disable_metrics true
+fi

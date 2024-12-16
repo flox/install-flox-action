@@ -81,10 +81,20 @@ jobs:
         uses: "./"
         with:
           channel: "${{ matrix.release-env }}"
+          disable-metrics: true
+
 
       - name: "Test: flox --version"
         run: |
           flox --version
+
+      - name: "Test: flox config"
+        run: |
+          export disable_metrics_value="$(flox config --list | grep 'disable_metrics' | cut -d' ' -f3)"
+          if [[ "$disable_metrics_value" != "true" ]]; then
+            echo "Expected 'disable_metrics' to be 'true' but got '$disable_metrics_value'"
+            exit 1
+          fi
 
   report-failure:
     name: "Report Failure"
