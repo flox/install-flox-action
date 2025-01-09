@@ -24,3 +24,5 @@ jobs:
 
       - name: "Update flake.lock"
         uses: DeterminateSystems/update-flake-lock@v23
+        with:
+          token: ${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}
