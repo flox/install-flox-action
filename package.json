@@ -63,15 +63,15 @@
   "devDependencies": {
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^7.27.7",
     "@babel/preset-env": "^7.27.2",
     "@vercel/ncc": "^0.38.3",
     "babel-preset-jest": "^30.0.1",
-    "jest": "^30.0.2",
+    "jest": "^30.0.3",
     "make-coverage-badge": "^1.2.0",
     "md5": "^2.3.0",
     "patch-package": "^8.0.0",
-    "prettier": "^3.6.0",
+    "prettier": "^3.6.2",
     "which": "^5.0.0"
   }
 }
