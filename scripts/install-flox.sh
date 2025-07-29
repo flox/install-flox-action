@@ -16,7 +16,7 @@ fi
 
 echo "Downloading flox..."
 
-DOWNLOADED_FILE=$(basename "$INPUT_DOWNLOAD_URL")
+DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
 curl --user-agent "install-flox-action" \
     "$INPUT_DOWNLOAD_URL" \
     --output "$DOWNLOADED_FILE";
