@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      issues: write
     steps:
     - name: Add team  label automatically to new issues and PRs
       uses: actions-ecosystem/action-add-labels@v1
