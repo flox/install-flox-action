@@ -67,7 +67,7 @@
     "@babel/preset-env": "^7.28.3",
     "@vercel/ncc": "^0.38.3",
     "babel-preset-jest": "^30.0.1",
-    "jest": "^30.0.5",
+    "jest": "^30.1.2",
     "make-coverage-badge": "^1.2.0",
     "md5": "^2.3.0",
     "patch-package": "^8.0.0",
