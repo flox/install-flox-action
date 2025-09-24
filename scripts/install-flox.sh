@@ -50,5 +50,5 @@ rm "$DOWNLOADED_FILE"
 
 if [[ true == "$DISABLE_METRICS" ]]; then
   echo "Disabling metrics..."
-  flox config --set-bool disable_metrics true
+  flox config --set disable_metrics true
 fi
