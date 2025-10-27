@@ -31,10 +31,10 @@ fi
 
 case $DOWNLOADED_FILE in
   *.rpm)
-    $SUDO rpm -i "$DOWNLOADED_FILE";
+    $SUDO rpm -i --notriggers "$DOWNLOADED_FILE";
     ;;
   *.deb)
-    $SUDO dpkg -i "$DOWNLOADED_FILE";
+    $SUDO dpkg -i --no-triggers "$DOWNLOADED_FILE";
     ;;
   *.pkg)
     $SUDO installer -pkg "$DOWNLOADED_FILE" -target /;
