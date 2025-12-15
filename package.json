@@ -61,8 +61,8 @@
     ]
   },
   "devDependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/exec": "^1.1.1",
+    "@actions/core": "^2.0.1",
+    "@actions/exec": "^2.0.0",
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@vercel/ncc": "^0.38.4",
