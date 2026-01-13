@@ -73,6 +73,73 @@ jobs:
       run: flox build
 ```
 
+## 🚀 Caching
+
+This action does **not** perform any caching by itself.
+
+### Using a Nix Binary Cache (S3)
+
+For teams and organizations, setting up a Nix binary cache is the most efficient
+approach. This allows sharing pre-built packages across CI runs and developers.
+
+#### 1. Generate signing keys
+
+First, generate an Ed25519 key pair for signing your cache:
+
+```bash
+nix-store --generate-binary-cache-key my-cache-1 secret-key.pem public-key.pem
+```
+
+The `secret-key.pem` contains your private signing key. The `public-key.pem`
+contains the public key that clients use for verification.
+
+#### 2. Configure GitHub secrets
+
+Add the following to your repository or organization:
+
+- **Variable** `NIX_SUBSTITUTER`: Your S3 bucket URL, e.g. `s3://my-nix-cache`
+  (or `s3://my-nix-cache?region=eu-west-1` for non-default regions)
+- **Secret** `NIX_SUBSTITUTER_KEY`: Contents of `secret-key.pem`
+- **Secret** `AWS_ACCESS_KEY_ID`: Your AWS access key
+- **Secret** `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
+
+#### 3. Configure your workflow
+
+Use [flox/configure-nix-action][configure-nix-action] to set up the cache:
+
+```yml
+name: "CI"
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install flox
+      uses: flox/install-flox-action@v2
+
+    - name: Configure Nix with S3 cache
+      uses: flox/configure-nix-action@main
+      with:
+        substituter: ${{ vars.NIX_SUBSTITUTER }}
+        substituter-key: ${{ secrets.NIX_SUBSTITUTER_KEY }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Build
+      run: flox build
+```
+
+See the [configure-nix-action documentation][configure-nix-action] for more
+options including remote builders and SSH key configuration.
+
 ## 📫 Have a question? Want to chat? Ran into a problem?
 
 We are happy to welcome you to our [Discourse forum][discourse] and answer your
@@ -103,3 +170,4 @@ The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
 [nix-website]: https://nixos.org
 [nix-help-stores]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-help-stores.html
 [post-nixpkgs]: https://flox.dev/blog/nixpkgs
+[configure-nix-action]: https://github.com/flox/configure-nix-action
