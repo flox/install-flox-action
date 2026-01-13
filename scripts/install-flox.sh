@@ -16,8 +16,13 @@ fi
 
 echo "Downloading flox..."
 
+DOWNLOAD_RETRIES="${DOWNLOAD_RETRIES:-3}"
+
 DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
 curl --user-agent "install-flox-action" \
+    --retry "$DOWNLOAD_RETRIES" \
+    --retry-delay 5 \
+    --retry-all-errors \
     "$INPUT_DOWNLOAD_URL" \
     --output "$DOWNLOADED_FILE";
 
