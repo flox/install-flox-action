@@ -35,14 +35,14 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v6
 
-      - name: "Install Nix"
-        uses: cachix/install-nix-action@v31.9.0
+      - name: "Install Flox"
+        uses: flox/install-flox-action@v3
 
       - name: "Install Dependencies"
-        run: nix develop --command npm ci
+        run: flox activate -- npm ci
 
       - name: "Build dist/ Directory"
-        run: nix develop --command npm run all
+        run: flox activate -- npm run all
 
       - name: "Compare Expected and Actual Directories"
         id: diff
