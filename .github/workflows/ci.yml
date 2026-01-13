@@ -32,8 +32,8 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v6"
 
-      - name: "Install Nix"
-        uses: "cachix/install-nix-action@v31.9.0"
+      - name: "Install Flox"
+        uses: "flox/install-flox-action@v2.1.0"
 
       - name: "Cache Dependencies"
         id: cache
@@ -51,13 +51,13 @@ jobs:
 
       - name: "Install Dependencies"
         if: steps.cache.outputs.cache-hit != 'true'
-        run: nix develop --command npm ci
+        run: flox activate -- npm ci
 
       - name: "Check Format"
-        run: nix develop --command npm run format:check
+        run: flox activate -- npm run format:check
 
       - name: "Test"
-        run: nix develop --command npm run ci-test
+        run: flox activate -- npm run ci-test
 
   test-action:
     name: "Github Action Test"

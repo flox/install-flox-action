@@ -1,0 +1,147 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "version": 1,
+    "install": {
+      "nodejs_20": {
+        "pkg-path": "nodejs_20"
+      }
+    },
+    "hook": {},
+    "profile": {},
+    "options": {
+      "systems": [
+        "aarch64-darwin",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "x86_64-linux"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "nodejs_20",
+      "broken": false,
+      "derivation": "/nix/store/60v7v9n1wpclp0v11pl73njgd9l9az0j-nodejs-20.19.6.drv",
+      "description": "Event-driven I/O framework for the V8 JavaScript engine",
+      "install_id": "nodejs_20",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "nodejs-20.19.6",
+      "pname": "nodejs_20",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T02:57:27.672489Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "20.19.6",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/2v5451xillx5693ncd73hnky5y9g1kn4-nodejs-20.19.6-dev",
+        "libv8": "/nix/store/halb86z5220y48903xzixz2l5xbri7mv-nodejs-20.19.6-libv8",
+        "out": "/nix/store/4zsj5qcmdgbs33fcgzm6v2h4bv4zz7p4-nodejs-20.19.6"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "nodejs_20",
+      "broken": false,
+      "derivation": "/nix/store/f5ckfj9xmlkvchj9k7pa04kp24h985kh-nodejs-20.19.6.drv",
+      "description": "Event-driven I/O framework for the V8 JavaScript engine",
+      "install_id": "nodejs_20",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "nodejs-20.19.6",
+      "pname": "nodejs_20",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:13:43.603173Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "20.19.6",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/5321ixqgg0vmsyjwhs6gfn3q7kyjh8hf-nodejs-20.19.6-dev",
+        "libv8": "/nix/store/yl32anby0d6hcx0mgq30aqg6hggyalqs-nodejs-20.19.6-libv8",
+        "out": "/nix/store/20pydyi9r2xag15xh4hc04fh3qrm8qgf-nodejs-20.19.6"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "nodejs_20",
+      "broken": false,
+      "derivation": "/nix/store/z0xc7ip7xdc4h94fhwc0a1lfcldgrbwd-nodejs-20.19.6.drv",
+      "description": "Event-driven I/O framework for the V8 JavaScript engine",
+      "install_id": "nodejs_20",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "nodejs-20.19.6",
+      "pname": "nodejs_20",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:24:03.222288Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "20.19.6",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/43vxm8baj1gz2cflnc84j8glqp02mp07-nodejs-20.19.6-dev",
+        "libv8": "/nix/store/3infmvi63w1cbm3i0gayqdrmwgvxdcwb-nodejs-20.19.6-libv8",
+        "out": "/nix/store/wnvypvf376m0nrh3krh3mdkv6597lkj0-nodejs-20.19.6"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "nodejs_20",
+      "broken": false,
+      "derivation": "/nix/store/27xi7nxm826xzy4wyp0d14ydkgzlkaf3-nodejs-20.19.6.drv",
+      "description": "Event-driven I/O framework for the V8 JavaScript engine",
+      "install_id": "nodejs_20",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "nodejs-20.19.6",
+      "pname": "nodejs_20",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:34:15.914571Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "20.19.6",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/rg3i4b51n02rq3i79fnr80nv67xrlhd9-nodejs-20.19.6-dev",
+        "libv8": "/nix/store/x2v14n3gnin44vjd8yh8i29m9mnr9r05-nodejs-20.19.6-libv8",
+        "out": "/nix/store/5d8li5z6br157w3rckhbnjvq7iwlwj8p-nodejs-20.19.6"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}

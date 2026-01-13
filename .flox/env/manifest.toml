@@ -1,0 +1,20 @@
+version = 1
+
+[install]
+nodejs_20.pkg-path = "nodejs_20"
+
+[vars]
+
+[hook]
+
+[profile]
+
+[services]
+
+[options]
+systems = [
+  "aarch64-darwin",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "x86_64-linux",
+]
