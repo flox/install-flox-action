@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: "Install Flox"
-        uses: flox/install-flox-action@v3
+        uses: flox/install-flox-action@v2.1.0
 
       - name: "Install Dependencies"
         run: flox activate -- npm ci
