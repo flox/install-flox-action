@@ -32,6 +32,9 @@ export async function getDownloadUrl() {
   const disable_metrics = core.getInput('disable-metrics')
   core.exportVariable('DISABLE_METRICS', disable_metrics)
 
+  const download_retries = core.getInput('download-retries') || '3'
+  core.exportVariable('DOWNLOAD_RETRIES', download_retries)
+
   let downloadUrl
 
   if (process.platform === 'darwin' && process.arch === 'x64') {

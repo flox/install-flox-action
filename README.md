@@ -44,7 +44,7 @@ create environments that layer and replace dependencies just where
 it matters, making them portable across the full software lifecycle.
 
 Install packages from [the biggest open source repository
-(nixpkgs)][post-nixpkgs] that contains **more than 80.000 packages**.
+(nixpkgs)][post-nixpkgs] that contains **more than 80,000 packages**.
 
 
 ## ⭐ Getting Started
@@ -64,100 +64,55 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install flox
-      uses: flox/install-flox-action@v2
+      uses: flox/install-flox-action@v2.1.0
 
     - name: Build
       run: flox build
+```
+
+## ⚙️ Inputs
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `version` | Select a specific version from a channel | `""` |
+| `channel` | One of: `stable`, `qa`, `nightly`, or a commit hash | `"stable"` |
+| `disable-metrics` | Disable sending anonymous usage statistics to flox | `"false"` |
+| `download-retries` | Number of retries when downloading flox (for network resilience) | `"3"` |
+
+### Example with custom inputs
+
+```yml
+- name: Install flox
+  uses: flox/install-flox-action@v2.1.0
+  with:
+    channel: nightly
+    download-retries: "5"
 ```
 
 ## 🚀 Caching
 
-This action does **not** perform any caching by itself.
+Most packages from Nixpkgs are available via the [Flox Catalog][flox-catalog]. These are pre-built and downloaded from the Flox binary cache, except for packages that cannot be redistributed in binary format.
 
-### Using a Nix Binary Cache (S3)
+For custom packages, use `flox build` and `flox publish` to get binary caching out of the box with a [FloxHub][floxhub] account.
+  
+> **Note:** If you're familiar with Nix and prefer managing your own infrastructure, see [flox/configure-nix-action][configure-nix-action] for setting up a custom binary cache. This is significantly more complex and not recommended for most users.
 
-For teams and organizations, setting up a Nix binary cache is the most efficient
-approach. This allows sharing pre-built packages across CI runs and developers.
+## 📫 Questions?
 
-#### 1. Generate signing keys
-
-First, generate an Ed25519 key pair for signing your cache:
-
-```bash
-nix-store --generate-binary-cache-key my-cache-1 secret-key.pem public-key.pem
-```
-
-The `secret-key.pem` contains your private signing key. The `public-key.pem`
-contains the public key that clients use for verification.
-
-#### 2. Configure GitHub secrets
-
-Add the following to your repository or organization:
-
-- **Variable** `NIX_SUBSTITUTER`: Your S3 bucket URL, e.g. `s3://my-nix-cache`
-  (or `s3://my-nix-cache?region=eu-west-1` for non-default regions)
-- **Secret** `NIX_SUBSTITUTER_KEY`: Contents of `secret-key.pem`
-- **Secret** `AWS_ACCESS_KEY_ID`: Your AWS access key
-- **Secret** `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
-
-#### 3. Configure your workflow
-
-Use [flox/configure-nix-action][configure-nix-action] to set up the cache:
-
-```yml
-name: "CI"
-
-on:
-  pull_request:
-  push:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Install flox
-      uses: flox/install-flox-action@v2
-
-    - name: Configure Nix with S3 cache
-      uses: flox/configure-nix-action@main
-      with:
-        substituter: ${{ vars.NIX_SUBSTITUTER }}
-        substituter-key: ${{ secrets.NIX_SUBSTITUTER_KEY }}
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-    - name: Build
-      run: flox build
-```
-
-See the [configure-nix-action documentation][configure-nix-action] for more
-options including remote builders and SSH key configuration.
-
-## 📫 Have a question? Want to chat? Ran into a problem?
-
-We are happy to welcome you to our [Discourse forum][discourse] and answer your
-questions! You can always reach out to us directly via the [flox twitter
-account][twitter] or chat to us directly on [Matrix][matrix] or
-[Discord][discord].
+Ask on [Discourse][discourse], [Matrix][matrix], [Discord][discord], or [Twitter][twitter].
 
 
 ## 🤝 Found a bug? Missing a specific feature?
 
-Feel free to [file a new issue][new-issue] with a respective title and
-description on the the `flox/install-flox-action` repository. If you already
-found a solution to your problem, we would love to review your pull request!
+[File an issue][new-issue] or open a pull request on the `flox/install-flox-action` repository.
 
 
 ## 🪪 License
 
-The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
+MIT licensed. See [LICENSE](./LICENSE).
 
 
 [flox-github]: https://github.com/flox/flox 
@@ -167,7 +122,7 @@ The install-flox-action is licensed under the MIT. See [LICENSE](./LICENSE).
 [twitter]: https://twitter.com/floxdevelopment
 [matrix]: https://matrix.to/#/#flox:matrix.org
 [discord]: https://discord.gg/5H7hN57eQR
-[nix-website]: https://nixos.org
-[nix-help-stores]: https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-help-stores.html
 [post-nixpkgs]: https://flox.dev/blog/nixpkgs
 [configure-nix-action]: https://github.com/flox/configure-nix-action
+[flox-catalog]: https://flox.dev/docs/concepts/packages-and-catalog/
+[floxhub]: https://hub.flox.dev

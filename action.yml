@@ -25,6 +25,10 @@ inputs:
     description: "Download base URL of flox installer"
     default: ""
 
+  download-retries:
+    description: "Number of retries when downloading flox (for network resilience)"
+    default: "3"
+
 runs:
   using: 'node20'
   main: 'dist/index.js'
