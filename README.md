@@ -80,7 +80,7 @@ jobs:
 | `version` | Select a specific version from a channel | `""` |
 | `channel` | One of: `stable`, `qa`, `nightly`, or a commit hash | `"stable"` |
 | `disable-metrics` | Disable sending anonymous usage statistics to flox | `"false"` |
-| `download-retries` | Number of retries when downloading flox (for network resilience) | `"3"` |
+| `retries` | Number of retries for downloading and installing Flox | `"3"` |
 
 ### Example with custom inputs
 
@@ -89,7 +89,7 @@ jobs:
   uses: flox/install-flox-action@v2.1.0
   with:
     channel: nightly
-    download-retries: "5"
+    retries: "5"
 ```
 
 ## 🚀 Caching

@@ -25,8 +25,8 @@ inputs:
     description: "Download base URL of flox installer"
     default: ""
 
-  download-retries:
-    description: "Number of retries when downloading flox (for network resilience)"
+  retries:
+    description: "Number of retries for downloading and installing Flox"
     default: "3"
 
 runs:
