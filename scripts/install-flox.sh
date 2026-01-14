@@ -16,11 +16,11 @@ fi
 
 echo "Downloading flox..."
 
-DOWNLOAD_RETRIES="${DOWNLOAD_RETRIES:-3}"
+RETRIES="${RETRIES:-3}"
 
 DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
 curl --user-agent "install-flox-action" \
-    --retry "$DOWNLOAD_RETRIES" \
+    --retry "$RETRIES" \
     --retry-delay 5 \
     --retry-all-errors \
     "$INPUT_DOWNLOAD_URL" \
@@ -34,21 +34,41 @@ if [ "$EUID" -ne 0 ]; then
   SUDO='sudo'
 fi
 
-case $DOWNLOADED_FILE in
-  *.rpm)
-    $SUDO rpm -i --notriggers "$DOWNLOADED_FILE";
-    ;;
-  *.deb)
-    $SUDO dpkg -i --no-triggers "$DOWNLOADED_FILE";
-    ;;
-  *.pkg)
-    $SUDO installer -pkg "$DOWNLOADED_FILE" -target /;
-    ;;
-  *)
-    echo >&2 "Aborting: Unknown file '$DOWNLOADED_FILE' downloaded. Not sure how to install it.";
-    exit 1;
-    ;;
-esac
+INSTALL_RETRIES="$RETRIES"
+RETRY_DELAY=5
+
+install_package() {
+  case $DOWNLOADED_FILE in
+    *.rpm)
+      $SUDO rpm -i --notriggers "$DOWNLOADED_FILE"
+      ;;
+    *.deb)
+      $SUDO dpkg -i --no-triggers "$DOWNLOADED_FILE"
+      ;;
+    *.pkg)
+      $SUDO installer -pkg "$DOWNLOADED_FILE" -target /
+      ;;
+    *)
+      echo >&2 "Aborting: Unknown file '$DOWNLOADED_FILE' downloaded. Not sure how to install it."
+      exit 1
+      ;;
+  esac
+}
+
+for attempt in $(seq 1 "$INSTALL_RETRIES"); do
+  echo "Installation attempt $attempt of $INSTALL_RETRIES..."
+  if install_package; then
+    echo "Installation succeeded on attempt $attempt"
+    break
+  else
+    if [ "$attempt" -eq "$INSTALL_RETRIES" ]; then
+      echo >&2 "Installation failed after $INSTALL_RETRIES attempts"
+      exit 1
+    fi
+    echo "Installation failed, retrying in ${RETRY_DELAY}s..."
+    sleep "$RETRY_DELAY"
+  fi
+done
 
 # Remove downloaded file
 rm "$DOWNLOADED_FILE"
