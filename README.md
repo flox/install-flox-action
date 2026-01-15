@@ -37,7 +37,7 @@
 </p>
 
 Installs [flox][flox-github] on GitHub Actions for the supported platforms:
-Linux and macOS.
+Linux and macOS. Available on the [GitHub Marketplace][marketplace].
 
 [Flox][flox-website] is a virtual environment and package manager all in one. With Flox you 
 create environments that layer and replace dependencies just where
@@ -67,7 +67,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install flox
-      uses: flox/install-flox-action@v2.1.0
+      uses: flox/install-flox-action@v2.2.0
 
     - name: Build
       run: flox build
@@ -115,8 +115,9 @@ Ask on [Discourse][discourse], [Matrix][matrix], [Discord][discord], or [Twitter
 MIT licensed. See [LICENSE](./LICENSE).
 
 
-[flox-github]: https://github.com/flox/flox 
+[flox-github]: https://github.com/flox/flox
 [flox-website]: https://flox.dev
+[marketplace]: https://github.com/marketplace/actions/install-flox
 [new-issue]: https://github.com/flox/install-flox-action/issues/new/choose
 [discourse]: https://discourse.flox.dev
 [twitter]: https://twitter.com/floxdevelopment

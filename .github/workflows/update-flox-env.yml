@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: "Install Flox"
-        uses: flox/install-flox-action@v2.1.0
+        uses: flox/install-flox-action@v2.2.0
 
       - name: "Update Flox Environment"
         run: flox update
