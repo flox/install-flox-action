@@ -1,5 +1,6 @@
 const core = require('@actions/core')
 const exec = require('@actions/exec')
+const fs = require('fs')
 const path = require('path')
 const which = require('which')
 
@@ -9,6 +10,10 @@ export function scriptPath(name) {
 
 const INSTALL_FLOX_SCRIPT = scriptPath('install-flox.sh')
 const CHANNELS = ['stable', 'qa', 'nightly']
+
+const FLOX_SUBSTITUTER = 'https://cache.flox.dev'
+const FLOX_PUBLIC_KEY =
+  'flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0='
 
 export async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
@@ -77,6 +82,59 @@ export async function getDownloadUrl() {
   return downloadUrl
 }
 
+export async function configureNixSubstituter() {
+  const nixConfPath = '/etc/nix/nix.conf'
+  const nixConfDir = '/etc/nix'
+
+  // Ensure /etc/nix directory exists
+  if (!fs.existsSync(nixConfDir)) {
+    await exec.exec('sudo', ['mkdir', '-p', nixConfDir])
+  }
+
+  // Read existing config or start fresh
+  let nixConf = ''
+  if (fs.existsSync(nixConfPath)) {
+    nixConf = fs.readFileSync(nixConfPath, 'utf8')
+  }
+
+  // Add Flox substituter if not already present
+  if (!nixConf.includes(FLOX_SUBSTITUTER)) {
+    const additions = `
+# Added by install-flox-action
+extra-trusted-substituters = ${FLOX_SUBSTITUTER}
+extra-trusted-public-keys = ${FLOX_PUBLIC_KEY}
+`
+    await exec.exec('sudo', [
+      'bash',
+      '-c',
+      `echo '${additions}' >> ${nixConfPath}`
+    ])
+    core.info(`Configured Flox substituter in ${nixConfPath}`)
+  } else {
+    core.info('Flox substituter already configured')
+  }
+}
+
+export async function installViaExistingNix() {
+  core.info('Nix detected - installing Flox via nix profile install')
+
+  // Configure the Flox binary cache
+  await configureNixSubstituter()
+
+  // Install Flox using nix profile
+  await exec.exec('nix', [
+    'profile',
+    'install',
+    '--impure',
+    'github:flox/floxpkgs#flox.fromCatalog',
+    '--accept-flake-config'
+  ])
+
+  // Verify installation
+  await exec.exec('flox', ['--version'])
+  core.info('Flox installed successfully via existing Nix')
+}
+
 export async function run() {
   core.startGroup('Download & Install flox')
   const nix = await which('nix', { nothrow: true })
@@ -84,7 +142,8 @@ export async function run() {
     await getDownloadUrl()
     await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
   } else {
-    core.setFailed(`Nix found at ${nix}! Please remove it to use flox.`)
+    core.info(`Nix found at ${nix}`)
+    await installViaExistingNix()
   }
   core.endGroup()
 }
