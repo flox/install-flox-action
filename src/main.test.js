@@ -52,14 +52,14 @@ describe('main', () => {
       expect(exec.exec).toHaveBeenCalledWith('nix', [
         'profile',
         'install',
-        '--impure',
-        '--no-update-lock-file',
+        '--experimental-features',
+        'nix-command flakes',
         '--extra-substituters',
         'https://cache.flox.dev',
         '--extra-trusted-public-keys',
-        'flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0=',
-        'github:flox/floxpkgs#flox.fromCatalog',
-        '--accept-flake-config'
+        'flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs=',
+        '--accept-flake-config',
+        'github:flox/flox/latest'
       ])
     })
   })
@@ -127,14 +127,14 @@ describe('main', () => {
       expect(exec.exec).toHaveBeenCalledWith('nix', [
         'profile',
         'install',
-        '--impure',
-        '--no-update-lock-file',
+        '--experimental-features',
+        'nix-command flakes',
         '--extra-substituters',
         'https://cache.flox.dev',
         '--extra-trusted-public-keys',
-        'flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0=',
-        'github:flox/floxpkgs#flox.fromCatalog',
-        '--accept-flake-config'
+        'flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs=',
+        '--accept-flake-config',
+        'github:flox/flox/latest'
       ])
       expect(exec.exec).toHaveBeenCalledWith('flox', ['--version'])
       expect(core.info).toHaveBeenCalledWith(
