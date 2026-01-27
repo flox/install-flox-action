@@ -26044,7 +26044,7 @@ const CHANNELS = ['stable', 'qa', 'nightly']
 
 const FLOX_SUBSTITUTER = 'https://cache.flox.dev'
 const FLOX_PUBLIC_KEY =
-  'flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0='
+  'flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs='
 
 async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
@@ -26153,14 +26153,14 @@ async function installViaExistingNix() {
   await exec.exec('nix', [
     'profile',
     'install',
-    '--impure',
-    '--no-update-lock-file',
+    '--experimental-features',
+    'nix-command flakes',
     '--extra-substituters',
     FLOX_SUBSTITUTER,
     '--extra-trusted-public-keys',
     FLOX_PUBLIC_KEY,
-    'github:flox/floxpkgs#flox.fromCatalog',
-    '--accept-flake-config'
+    '--accept-flake-config',
+    'github:flox/flox/latest'
   ])
 
   // Verify installation
