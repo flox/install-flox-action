@@ -126,6 +126,7 @@ export async function installViaExistingNix() {
     'profile',
     'install',
     '--impure',
+    '--no-update-lock-file',
     'github:flox/floxpkgs#flox.fromCatalog',
     '--accept-flake-config'
   ])
