@@ -96,6 +96,49 @@ jobs:
             exit 1
           fi
 
+  test-existing-nix:
+    name: "Test with Existing Nix (${{ matrix.nix-installer }})"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "macos-latest"
+        nix-installer:
+          - "determinate-systems"
+          - "cachix"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v6"
+
+      - name: "Install Nix (DeterminateSystems)"
+        if: matrix.nix-installer == 'determinate-systems'
+        uses: "DeterminateSystems/nix-installer-action@main"
+
+      - name: "Install Nix (Cachix)"
+        if: matrix.nix-installer == 'cachix'
+        uses: "cachix/install-nix-action@v30"
+
+      - name: "Install Flox (using existing Nix)"
+        uses: "./"
+        with:
+          disable-metrics: true
+
+      - name: "Test: flox --version"
+        run: |
+          flox --version
+
+      - name: "Test: flox config"
+        run: |
+          export disable_metrics_value="$(flox config --list | grep 'disable_metrics' | cut -d' ' -f3)"
+          if [[ "$disable_metrics_value" != "true" ]]; then
+            echo "Expected 'disable_metrics' to be 'true' but got '$disable_metrics_value'"
+            exit 1
+          fi
+
   report-failure:
     name: "Report Failure"
     runs-on: "ubuntu-latest"
@@ -106,6 +149,7 @@ jobs:
     needs:
       - "test-javascript"
       - "test-action"
+      - "test-existing-nix"
 
     steps:
       - name: "Slack Notification"
