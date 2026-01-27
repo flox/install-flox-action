@@ -118,15 +118,16 @@ extra-trusted-public-keys = ${FLOX_PUBLIC_KEY}
 export async function installViaExistingNix() {
   core.info('Nix detected - installing Flox via nix profile install')
 
-  // Configure the Flox binary cache
-  await configureNixSubstituter()
-
-  // Install Flox using nix profile
+  // Install Flox using nix profile with substituter flags
   await exec.exec('nix', [
     'profile',
     'install',
     '--impure',
     '--no-update-lock-file',
+    '--extra-substituters',
+    FLOX_SUBSTITUTER,
+    '--extra-trusted-public-keys',
+    FLOX_PUBLIC_KEY,
     'github:flox/floxpkgs#flox.fromCatalog',
     '--accept-flake-config'
   ])

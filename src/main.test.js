@@ -54,6 +54,10 @@ describe('main', () => {
         'install',
         '--impure',
         '--no-update-lock-file',
+        '--extra-substituters',
+        'https://cache.flox.dev',
+        '--extra-trusted-public-keys',
+        'flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0=',
         'github:flox/floxpkgs#flox.fromCatalog',
         '--accept-flake-config'
       ])
@@ -115,9 +119,7 @@ describe('main', () => {
   })
 
   describe('installViaExistingNix', () => {
-    it('configures substituter and installs via nix profile', async () => {
-      fs.existsSync.mockReturnValue(true)
-      fs.readFileSync.mockReturnValue('')
+    it('installs via nix profile with substituter flags', async () => {
       exec.exec.mockResolvedValue(0)
 
       await main.installViaExistingNix()
@@ -127,6 +129,10 @@ describe('main', () => {
         'install',
         '--impure',
         '--no-update-lock-file',
+        '--extra-substituters',
+        'https://cache.flox.dev',
+        '--extra-trusted-public-keys',
+        'flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0=',
         'github:flox/floxpkgs#flox.fromCatalog',
         '--accept-flake-config'
       ])
