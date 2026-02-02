@@ -121,7 +121,7 @@ jobs:
 
       - name: "Install Nix (Cachix)"
         if: matrix.nix-installer == 'cachix'
-        uses: "cachix/install-nix-action@v30"
+        uses: "cachix/install-nix-action@v31"
 
       - name: "Install Flox (using existing Nix)"
         uses: "./"
