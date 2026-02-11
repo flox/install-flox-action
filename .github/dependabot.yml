@@ -29,6 +29,11 @@ updates:
     all:
       patterns:
         - "*"
+  ignore:
+    - dependency-name: "@actions/core"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "@actions/exec"
+      update-types: ["version-update:semver-major"]
   labels:
     - "chore"
     - "team-developer-support"
