@@ -239,6 +239,21 @@ async function configureFlox() {
     ])
     core.info('Upgrade notifications disabled')
   }
+
+  const extraFloxConfig = core.getInput('extra-flox-config')
+  if (extraFloxConfig !== '') {
+    const lines = extraFloxConfig
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l !== '' && l.includes('='))
+    for (const line of lines) {
+      const eqIndex = line.indexOf('=')
+      const key = line.substring(0, eqIndex).trim()
+      const value = line.substring(eqIndex + 1).trim()
+      await exec.exec('flox', ['config', '--set', key, value])
+      core.info(`Flox config: ${key} = ${value}`)
+    }
+  }
 }
 
 async function captureOutputs(nixDetected) {
