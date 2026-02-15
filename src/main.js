@@ -138,13 +138,6 @@ export async function installViaExistingNix() {
 }
 
 export async function configureFlox() {
-  const floxhubToken = core.getInput('floxhub-token')
-  if (floxhubToken !== '') {
-    core.setSecret(floxhubToken)
-    await exec.exec('flox', ['config', '--set', 'floxhub_token', floxhubToken])
-    core.info('FloxHub token configured')
-  }
-
   const trustedEnvs = core.getInput('trusted-environments')
   if (trustedEnvs !== '') {
     const envList = trustedEnvs

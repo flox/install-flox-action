@@ -144,41 +144,6 @@ describe('main', () => {
   })
 
   describe('configureFlox', () => {
-    it('sets floxhub token when provided', async () => {
-      core.getInput.mockImplementation(name => {
-        if (name === 'floxhub-token') return 'test-token-123'
-        if (name === 'disable-upgrade-notifications') return 'true'
-        return ''
-      })
-      exec.exec.mockResolvedValue(0)
-
-      await main.configureFlox()
-
-      expect(core.setSecret).toHaveBeenCalledWith('test-token-123')
-      expect(exec.exec).toHaveBeenCalledWith('flox', [
-        'config',
-        '--set',
-        'floxhub_token',
-        'test-token-123'
-      ])
-      expect(core.info).toHaveBeenCalledWith('FloxHub token configured')
-    })
-
-    it('skips floxhub token when empty', async () => {
-      core.getInput.mockImplementation(name => {
-        if (name === 'disable-upgrade-notifications') return 'true'
-        return ''
-      })
-      exec.exec.mockResolvedValue(0)
-
-      await main.configureFlox()
-
-      expect(exec.exec).not.toHaveBeenCalledWith(
-        'flox',
-        expect.arrayContaining(['floxhub_token'])
-      )
-    })
-
     it('trusts listed environments', async () => {
       core.getInput.mockImplementation(name => {
         if (name === 'trusted-environments') return 'myorg/env1,myorg/env2'
