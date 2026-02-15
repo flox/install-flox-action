@@ -137,6 +137,43 @@ export async function installViaExistingNix() {
   core.info('Flox installed successfully via existing Nix')
 }
 
+export async function configureFlox() {
+  const floxhubToken = core.getInput('floxhub-token')
+  if (floxhubToken !== '') {
+    core.setSecret(floxhubToken)
+    await exec.exec('flox', ['config', '--set', 'floxhub_token', floxhubToken])
+    core.info('FloxHub token configured')
+  }
+
+  const trustedEnvs = core.getInput('trusted-environments')
+  if (trustedEnvs !== '') {
+    const envList = trustedEnvs
+      .split(',')
+      .map(e => e.trim())
+      .filter(e => e !== '')
+    for (const env of envList) {
+      await exec.exec('flox', [
+        'config',
+        '--set',
+        `trusted_environments."${env}"`,
+        'trust'
+      ])
+      core.info(`Trusted environment: ${env}`)
+    }
+  }
+
+  const disableUpgrade = core.getInput('disable-upgrade-notifications')
+  if (disableUpgrade === 'true') {
+    await exec.exec('flox', [
+      'config',
+      '--set',
+      'upgrade_notifications',
+      'false'
+    ])
+    core.info('Upgrade notifications disabled')
+  }
+}
+
 export async function run() {
   const disable_metrics = core.getInput('disable-metrics')
   core.exportVariable('FLOX_DISABLE_METRICS', disable_metrics)
