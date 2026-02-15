@@ -236,6 +236,27 @@ export async function captureOutputs(nixDetected) {
   core.info(`Flox path: ${floxPath}`)
 }
 
+export async function writeJobSummary({
+  floxVersion,
+  channel,
+  method,
+  platform,
+  arch,
+  nixDetected
+}) {
+  await core.summary
+    .addHeading('Flox Installation')
+    .addTable([
+      ['Property', 'Value'],
+      ['Version', floxVersion],
+      ['Channel', channel],
+      ['Method', method],
+      ['Platform', `${platform} (${arch})`],
+      ['Nix pre-installed', nixDetected ? 'Yes' : 'No']
+    ])
+    .write()
+}
+
 export async function run() {
   core.startGroup('Download & Install flox')
   const nix = await which('nix', { nothrow: true })
