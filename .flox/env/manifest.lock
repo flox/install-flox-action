@@ -3,6 +3,9 @@
   "manifest": {
     "version": 1,
     "install": {
+      "act": {
+        "pkg-path": "act"
+      },
       "nodejs_20": {
         "pkg-path": "nodejs_20"
       }
@@ -20,20 +23,141 @@
   },
   "packages": [
     {
+      "attr_path": "act",
+      "broken": false,
+      "derivation": "/nix/store/40bs6n8y8d6ifx6yff5c06ini05j73wi-act-0.2.84.drv",
+      "description": "Run your GitHub Actions locally",
+      "install_id": "act",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "name": "act-0.2.84",
+      "pname": "act",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T03:15:53.518313Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.2.84",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/a66igc76c2vzyl3q5z7c7kf7dr4b9is5-act-0.2.84"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "act",
+      "broken": false,
+      "derivation": "/nix/store/gvm0pc1y66qfd2j92zwdi6s8ivmpa39q-act-0.2.84.drv",
+      "description": "Run your GitHub Actions locally",
+      "install_id": "act",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "name": "act-0.2.84",
+      "pname": "act",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T03:51:10.478915Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.2.84",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/wwrpc61p07x97b27ryhyks8zc9bq4j5c-act-0.2.84"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "act",
+      "broken": false,
+      "derivation": "/nix/store/3y1z7k81hxspkcwd5wlx726y6dblr5mg-act-0.2.84.drv",
+      "description": "Run your GitHub Actions locally",
+      "install_id": "act",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "name": "act-0.2.84",
+      "pname": "act",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T04:22:52.580507Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.2.84",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/v5fv7inyakck6m1f5q4xz78gfk7r1al7-act-0.2.84"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "act",
+      "broken": false,
+      "derivation": "/nix/store/lnf6xmgphzppdy4mfmv4s811ddk3485k-act-0.2.84.drv",
+      "description": "Run your GitHub Actions locally",
+      "install_id": "act",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "name": "act-0.2.84",
+      "pname": "act",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T04:59:40.345917Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.2.84",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/vpqyxvqac1f8pwva5ffxidr98qbfhn20-act-0.2.84"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
       "attr_path": "nodejs_20",
       "broken": false,
       "derivation": "/nix/store/60v7v9n1wpclp0v11pl73njgd9l9az0j-nodejs-20.19.6.drv",
       "description": "Event-driven I/O framework for the V8 JavaScript engine",
       "install_id": "nodejs_20",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
       "name": "nodejs-20.19.6",
       "pname": "nodejs_20",
-      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
-      "rev_count": 925861,
-      "rev_date": "2026-01-11T10:35:08Z",
-      "scrape_date": "2026-01-12T02:57:27.672489Z",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T03:16:17.208977Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -57,14 +181,15 @@
       "description": "Event-driven I/O framework for the V8 JavaScript engine",
       "install_id": "nodejs_20",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
       "name": "nodejs-20.19.6",
       "pname": "nodejs_20",
-      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
-      "rev_count": 925861,
-      "rev_date": "2026-01-11T10:35:08Z",
-      "scrape_date": "2026-01-12T03:13:43.603173Z",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T03:51:47.839219Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -88,14 +213,15 @@
       "description": "Event-driven I/O framework for the V8 JavaScript engine",
       "install_id": "nodejs_20",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
       "name": "nodejs-20.19.6",
       "pname": "nodejs_20",
-      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
-      "rev_count": 925861,
-      "rev_date": "2026-01-11T10:35:08Z",
-      "scrape_date": "2026-01-12T03:24:03.222288Z",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T04:23:16.086302Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -119,14 +245,15 @@
       "description": "Event-driven I/O framework for the V8 JavaScript engine",
       "install_id": "nodejs_20",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
       "name": "nodejs-20.19.6",
       "pname": "nodejs_20",
-      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
-      "rev_count": 925861,
-      "rev_date": "2026-01-11T10:35:08Z",
-      "scrape_date": "2026-01-12T03:34:15.914571Z",
+      "rev": "1412caf7bf9e660f2f962917c14b1ea1c3bc695e",
+      "rev_count": 927018,
+      "rev_date": "2026-01-13T12:03:11Z",
+      "scrape_date": "2026-01-16T05:00:22.463457Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
