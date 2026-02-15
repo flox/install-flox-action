@@ -219,6 +219,118 @@ describe('main', () => {
     })
   })
 
+  describe('configureNixExtra', () => {
+    it('appends extra-nix-config to nix.conf', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'extra-nix-config')
+          return 'sandbox = relaxed\nmax-jobs = 4'
+        return ''
+      })
+      fs.existsSync.mockReturnValue(true)
+      fs.readFileSync.mockReturnValue('# existing\n')
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureNixExtra()
+
+      expect(exec.exec).toHaveBeenCalledWith('sudo', [
+        'bash',
+        '-c',
+        expect.stringContaining('sandbox = relaxed')
+      ])
+    })
+
+    it('adds extra substituters to nix.conf', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'extra-substituters') return 'https://cache.example.com'
+        if (name === 'extra-substituter-keys') return 'example-1:AAAA='
+        return ''
+      })
+      fs.existsSync.mockReturnValue(true)
+      fs.readFileSync.mockReturnValue('# existing\n')
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureNixExtra()
+
+      expect(exec.exec).toHaveBeenCalledWith('sudo', [
+        'bash',
+        '-c',
+        expect.stringContaining(
+          'extra-trusted-substituters = https://cache.example.com'
+        )
+      ])
+      expect(exec.exec).toHaveBeenCalledWith('sudo', [
+        'bash',
+        '-c',
+        expect.stringContaining('extra-trusted-public-keys = example-1:AAAA=')
+      ])
+    })
+
+    it('adds github token as access-token', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'github-token') return 'ghp_test123'
+        return ''
+      })
+      fs.existsSync.mockReturnValue(true)
+      fs.readFileSync.mockReturnValue('# existing\n')
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureNixExtra()
+
+      expect(core.setSecret).toHaveBeenCalledWith('ghp_test123')
+      expect(exec.exec).toHaveBeenCalledWith('sudo', [
+        'bash',
+        '-c',
+        expect.stringContaining('access-tokens = github.com=ghp_test123')
+      ])
+    })
+
+    it('skips github token if access-tokens already set', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'github-token') return 'ghp_test123'
+        return ''
+      })
+      fs.existsSync.mockReturnValue(true)
+      fs.readFileSync.mockReturnValue('access-tokens = github.com=existing\n')
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureNixExtra()
+
+      expect(exec.exec).not.toHaveBeenCalledWith(
+        'sudo',
+        expect.arrayContaining([expect.stringContaining('access-tokens')])
+      )
+    })
+
+    it('does nothing when no nix config inputs provided', async () => {
+      core.getInput.mockReturnValue('')
+
+      await main.configureNixExtra()
+
+      expect(exec.exec).not.toHaveBeenCalled()
+    })
+
+    it('creates /etc/nix if it does not exist', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'extra-nix-config') return 'max-jobs = 2'
+        return ''
+      })
+      fs.existsSync.mockImplementation(p => {
+        if (p === '/etc/nix') return false
+        if (p === '/etc/nix/nix.conf') return false
+        return false
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureNixExtra()
+
+      expect(exec.exec).toHaveBeenCalledWith('sudo', [
+        'mkdir',
+        '-p',
+        '/etc/nix'
+      ])
+    })
+  })
+
   describe('getDownloadUrl', () => {
     const originalPlatform = process.platform
     const originalArch = process.arch
