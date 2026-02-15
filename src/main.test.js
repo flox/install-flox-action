@@ -331,6 +331,41 @@ describe('main', () => {
     })
   })
 
+  describe('captureOutputs', () => {
+    it('captures flox version and path', async () => {
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (cmd === 'flox' && args[0] === '--version') {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+      which.mockResolvedValue('/usr/local/bin/flox')
+
+      await main.captureOutputs(false)
+
+      expect(core.setOutput).toHaveBeenCalledWith('flox-version', 'flox 1.7.6')
+      expect(core.setOutput).toHaveBeenCalledWith(
+        'flox-path',
+        '/usr/local/bin/flox'
+      )
+      expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'false')
+    })
+
+    it('sets nix-detected to true when nix found', async () => {
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (opts && opts.listeners && opts.listeners.stdout) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+      which.mockResolvedValue('/usr/local/bin/flox')
+
+      await main.captureOutputs(true)
+
+      expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'true')
+    })
+  })
+
   describe('getDownloadUrl', () => {
     const originalPlatform = process.platform
     const originalArch = process.arch
