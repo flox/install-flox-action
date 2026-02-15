@@ -215,6 +215,27 @@ export async function configureFlox() {
   }
 }
 
+export async function captureOutputs(nixDetected) {
+  let floxVersion = ''
+  await exec.exec('flox', ['--version'], {
+    listeners: {
+      stdout: data => {
+        floxVersion += data.toString()
+      }
+    }
+  })
+  floxVersion = floxVersion.trim()
+  core.setOutput('flox-version', floxVersion)
+
+  const floxPath = await which('flox', { nothrow: true })
+  core.setOutput('flox-path', floxPath || '')
+
+  core.setOutput('nix-detected', nixDetected ? 'true' : 'false')
+
+  core.info(`Flox version: ${floxVersion}`)
+  core.info(`Flox path: ${floxPath}`)
+}
+
 export async function run() {
   core.startGroup('Download & Install flox')
   const nix = await which('nix', { nothrow: true })
