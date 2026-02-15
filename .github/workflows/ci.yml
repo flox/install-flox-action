@@ -95,6 +95,42 @@ jobs:
             exit 1
           fi
 
+  test-new-inputs:
+    name: "Test New Inputs"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "macos-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v6"
+
+      - name: "Install Flox with new inputs"
+        id: install
+        uses: "./"
+        with:
+          channel: stable
+          disable-metrics: "true"
+          disable-upgrade-notifications: "true"
+
+      - name: "Verify outputs"
+        run: |
+          echo "Flox version: ${{ steps.install.outputs.flox-version }}"
+          echo "Flox path: ${{ steps.install.outputs.flox-path }}"
+          echo "Nix detected: ${{ steps.install.outputs.nix-detected }}"
+          test -n "${{ steps.install.outputs.flox-version }}"
+          test -n "${{ steps.install.outputs.flox-path }}"
+
+      - name: "Verify config"
+        run: |
+          flox config --list | grep -q 'disable_metrics = true'
+          flox config --list | grep -q 'upgrade_notifications = false'
+
   test-existing-nix:
     name: "Test with Existing Nix (${{ matrix.nix-installer }})"
     runs-on: ${{ matrix.os }}
@@ -149,6 +185,7 @@ jobs:
     needs:
       - "test-javascript"
       - "test-action"
+      - "test-new-inputs"
       - "test-existing-nix"
 
     steps:
