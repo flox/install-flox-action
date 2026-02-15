@@ -107,3 +107,9 @@ __tests__/runner/*
 result*
 /example/flake.lock
 
+# Local benchmark (not for CI)
+.github/workflows/benchmark.yml
+
+# Plans
+.plans/
+
