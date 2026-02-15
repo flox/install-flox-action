@@ -40,6 +40,13 @@ export async function getDownloadUrl() {
   const retries = core.getInput('retries') || '3'
   core.exportVariable('RETRIES', retries)
 
+  const proxy = core.getInput('proxy')
+  if (proxy !== '') {
+    core.exportVariable('PROXY', proxy)
+    core.exportVariable('HTTPS_PROXY', proxy)
+    core.exportVariable('HTTP_PROXY', proxy)
+  }
+
   let downloadUrl
 
   if (process.platform === 'darwin' && process.arch === 'x64') {
