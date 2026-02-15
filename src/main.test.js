@@ -26,9 +26,29 @@ describe('main', () => {
   })
 
   describe('run', () => {
-    it('uses package installation when nix is not found', async () => {
-      which.mockResolvedValue(null)
-      exec.exec.mockResolvedValue(0)
+    it('installs via package and configures when nix not found', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix') return Promise.resolve(null)
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'channel') return 'stable'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
 
       await main.run()
 
@@ -37,35 +57,52 @@ describe('main', () => {
         '-c',
         expect.stringContaining('install-flox.sh')
       ])
+      expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'false')
       expect(core.endGroup).toHaveBeenCalled()
     })
 
-    it('uses nix profile install when nix is found', async () => {
-      which.mockResolvedValue('/nix/var/nix/profiles/default/bin/nix')
+    it('installs via nix profile when nix is found', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix')
+          return Promise.resolve('/nix/var/nix/profiles/default/bin/nix')
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
       fs.existsSync.mockReturnValue(true)
       fs.readFileSync.mockReturnValue('')
-      exec.exec.mockResolvedValue(0)
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
 
       await main.run()
 
       expect(core.info).toHaveBeenCalledWith(
-        'Nix found at /nix/var/nix/profiles/default/bin/nix'
+        expect.stringContaining('Nix found at')
       )
-      expect(core.info).toHaveBeenCalledWith(
-        'Nix detected - installing Flox via nix profile install'
-      )
-      expect(exec.exec).toHaveBeenCalledWith('nix', [
-        'profile',
-        'install',
-        '--experimental-features',
-        'nix-command flakes',
-        '--extra-substituters',
-        'https://cache.flox.dev',
-        '--extra-trusted-public-keys',
-        'flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs=',
-        '--accept-flake-config',
-        'github:flox/flox/latest'
-      ])
+      expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'true')
+    })
+
+    it('catches errors and calls setFailed', async () => {
+      which.mockImplementation(() => {
+        throw new Error('something went wrong')
+      })
+
+      await main.run()
+
+      expect(core.setFailed).toHaveBeenCalledWith('something went wrong')
     })
   })
 

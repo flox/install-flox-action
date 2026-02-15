@@ -265,14 +265,38 @@ export async function writeJobSummary({
 }
 
 export async function run() {
-  core.startGroup('Download & Install flox')
-  const nix = await which('nix', { nothrow: true })
-  if (nix === null) {
-    await getDownloadUrl()
-    await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
-  } else {
-    core.info(`Nix found at ${nix}`)
-    await installViaExistingNix()
+  try {
+    core.startGroup('Download & Install flox')
+    const nix = await which('nix', { nothrow: true })
+    const nixDetected = nix !== null
+
+    if (!nixDetected) {
+      await getDownloadUrl()
+      await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
+    } else {
+      core.info(`Nix found at ${nix}`)
+      await installViaExistingNix()
+    }
+    core.endGroup()
+
+    core.startGroup('Configure flox')
+    await configureNixExtra()
+    await configureFlox()
+    core.endGroup()
+
+    core.startGroup('Verify installation')
+    await captureOutputs(nixDetected)
+    core.endGroup()
+
+    await writeJobSummary({
+      floxVersion: core.getInput('version') || '(latest)',
+      channel: core.getInput('channel') || 'stable',
+      method: nixDetected ? 'nix profile' : 'package',
+      platform: process.platform,
+      arch: process.arch,
+      nixDetected
+    })
+  } catch (error) {
+    core.setFailed(error.message)
   }
-  core.endGroup()
 }
