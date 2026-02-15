@@ -3,6 +3,7 @@ schema-version = "1.10.0"
 [install]
 nodejs.pkg-path = "nodejs"
 nodejs.version = "24"
+act.pkg-path = "act"
 
 [vars]
 
