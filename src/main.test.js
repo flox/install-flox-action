@@ -18,6 +18,11 @@ describe('main', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     core.getInput.mockReturnValue('')
+    core.summary = {
+      addHeading: jest.fn().mockReturnThis(),
+      addTable: jest.fn().mockReturnThis(),
+      write: jest.fn().mockResolvedValue(undefined)
+    }
   })
 
   describe('run', () => {
@@ -363,6 +368,50 @@ describe('main', () => {
       await main.captureOutputs(true)
 
       expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'true')
+    })
+  })
+
+  describe('writeJobSummary', () => {
+    it('writes summary with install details', async () => {
+      await main.writeJobSummary({
+        floxVersion: 'flox 1.7.6',
+        channel: 'stable',
+        method: 'package',
+        platform: 'linux',
+        arch: 'x64',
+        nixDetected: false
+      })
+
+      expect(core.summary.addHeading).toHaveBeenCalledWith('Flox Installation')
+      expect(core.summary.addTable).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.arrayContaining(['Version', 'flox 1.7.6'])
+        ])
+      )
+      expect(core.summary.addTable).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.arrayContaining(['Nix pre-installed', 'No'])
+        ])
+      )
+      expect(core.summary.write).toHaveBeenCalled()
+    })
+
+    it('shows nix profile method when nix detected', async () => {
+      await main.writeJobSummary({
+        floxVersion: 'flox 1.7.6',
+        channel: 'stable',
+        method: 'nix profile',
+        platform: 'darwin',
+        arch: 'arm64',
+        nixDetected: true
+      })
+
+      expect(core.summary.addTable).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.arrayContaining(['Method', 'nix profile']),
+          expect.arrayContaining(['Nix pre-installed', 'Yes'])
+        ])
+      )
     })
   })
 
