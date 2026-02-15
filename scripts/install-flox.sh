@@ -18,8 +18,15 @@ echo "Downloading flox..."
 
 RETRIES="${RETRIES:-3}"
 
+PROXY_ARGS=""
+if [ -n "${PROXY:-}" ]; then
+  PROXY_ARGS="--proxy $PROXY"
+  echo "Using proxy: $PROXY"
+fi
+
 DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
 curl --user-agent "install-flox-action" \
+    $PROXY_ARGS \
     --retry "$RETRIES" \
     --retry-delay 5 \
     --retry-all-errors \
