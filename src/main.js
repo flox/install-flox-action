@@ -137,6 +137,54 @@ export async function installViaExistingNix() {
   core.info('Flox installed successfully via existing Nix')
 }
 
+export async function configureNixExtra() {
+  const nixConfPath = '/etc/nix/nix.conf'
+  const nixConfDir = '/etc/nix'
+  const extraNixConfig = core.getInput('extra-nix-config')
+  const extraSubstituters = core.getInput('extra-substituters')
+  const extraKeys = core.getInput('extra-substituter-keys')
+  const githubToken = core.getInput('github-token')
+
+  const hasWork =
+    extraNixConfig !== '' || extraSubstituters !== '' || githubToken !== ''
+
+  if (!hasWork) return
+
+  if (!fs.existsSync(nixConfDir)) {
+    await exec.exec('sudo', ['mkdir', '-p', nixConfDir])
+  }
+
+  let existingConf = ''
+  if (fs.existsSync(nixConfPath)) {
+    existingConf = fs.readFileSync(nixConfPath, 'utf8')
+  }
+
+  let additions = '\n# Added by install-flox-action\n'
+
+  if (extraNixConfig !== '') {
+    additions += extraNixConfig + '\n'
+  }
+
+  if (extraSubstituters !== '') {
+    additions += `extra-trusted-substituters = ${extraSubstituters}\n`
+    if (extraKeys !== '') {
+      additions += `extra-trusted-public-keys = ${extraKeys}\n`
+    }
+  }
+
+  if (githubToken !== '' && !existingConf.includes('access-tokens')) {
+    core.setSecret(githubToken)
+    additions += `access-tokens = github.com=${githubToken}\n`
+  }
+
+  await exec.exec('sudo', [
+    'bash',
+    '-c',
+    `cat >> ${nixConfPath} << 'NIXCONF'\n${additions}NIXCONF`
+  ])
+  core.info('Nix configuration updated')
+}
+
 export async function configureFlox() {
   const trustedEnvs = core.getInput('trusted-environments')
   if (trustedEnvs !== '') {
