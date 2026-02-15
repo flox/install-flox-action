@@ -594,6 +594,32 @@ describe('main', () => {
       )
     })
 
+    it('exports PROXY env var when provided', async () => {
+      Object.defineProperty(process, 'platform', { value: 'darwin' })
+      Object.defineProperty(process, 'arch', { value: 'arm64' })
+      core.getInput.mockImplementation(name => {
+        if (name === 'proxy') return 'https://proxy.corp.com:8080'
+        if (name === 'channel') return 'stable'
+        return ''
+      })
+      which.mockResolvedValue(null)
+
+      await main.getDownloadUrl()
+
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'PROXY',
+        'https://proxy.corp.com:8080'
+      )
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'HTTPS_PROXY',
+        'https://proxy.corp.com:8080'
+      )
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'HTTP_PROXY',
+        'https://proxy.corp.com:8080'
+      )
+    })
+
     it('exports FLOX_DISABLE_METRICS and RETRIES env vars', async () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' })
       Object.defineProperty(process, 'arch', { value: 'arm64' })
