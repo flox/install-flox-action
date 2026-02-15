@@ -176,6 +176,35 @@ jobs:
             exit 1
           fi
 
+  test-act:
+    name: "Test with nektos/act"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 30
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v6"
+
+      - name: "Install act"
+        run: >-
+          curl
+          https://raw.githubusercontent.com/nektos/act/master/install.sh
+          | sudo bash
+
+      - name: "Pull container image"
+        run: >-
+          docker pull
+          ghcr.io/catthehacker/ubuntu:js-24.04
+
+      - name: "Run action with act"
+        run: >-
+          ./bin/act push
+          -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:js-24.04
+          -j test-action
+          --matrix os:ubuntu-latest
+          --matrix release-env:stable
+          --env FLOX_DISABLE_METRICS=true
+
   report-failure:
     name: "Report Failure"
     runs-on: "ubuntu-latest"
@@ -188,6 +217,7 @@ jobs:
       - "test-action"
       - "test-new-inputs"
       - "test-existing-nix"
+      - "test-act"
 
     steps:
       - name: "Slack Notification"
