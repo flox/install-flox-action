@@ -259,6 +259,68 @@ describe('main', () => {
         expect.arrayContaining(['upgrade_notifications'])
       )
     })
+
+    it('applies extra-flox-config key=value pairs', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'extra-flox-config')
+          return 'search_limit=20\nset_prompt=false'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'search_limit',
+        '20'
+      ])
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'set_prompt',
+        'false'
+      ])
+    })
+
+    it('skips extra-flox-config when empty', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-upgrade-notifications') return 'false'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).not.toHaveBeenCalledWith(
+        'flox',
+        expect.arrayContaining(['search_limit'])
+      )
+    })
+
+    it('skips lines without = in extra-flox-config', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'extra-flox-config') return 'invalid_line\nsearch_limit=10'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'search_limit',
+        '10'
+      ])
+      expect(exec.exec).not.toHaveBeenCalledWith(
+        'flox',
+        expect.arrayContaining(['invalid_line'])
+      )
+    })
   })
 
   describe('configureNixExtra', () => {
