@@ -29,12 +29,6 @@ inputs:
     description: "Number of retries for downloading and installing Flox"
     default: "3"
 
-  floxhub-token:
-    description: >-
-      FloxHub authentication token for accessing private
-      environments and FloxHub features.
-    default: ""
-
   github-token:
     description: >-
       GitHub token for authenticated API requests.
