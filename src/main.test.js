@@ -143,6 +143,117 @@ describe('main', () => {
     })
   })
 
+  describe('configureFlox', () => {
+    it('sets floxhub token when provided', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'floxhub-token') return 'test-token-123'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(core.setSecret).toHaveBeenCalledWith('test-token-123')
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'floxhub_token',
+        'test-token-123'
+      ])
+      expect(core.info).toHaveBeenCalledWith('FloxHub token configured')
+    })
+
+    it('skips floxhub token when empty', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).not.toHaveBeenCalledWith(
+        'flox',
+        expect.arrayContaining(['floxhub_token'])
+      )
+    })
+
+    it('trusts listed environments', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'trusted-environments') return 'myorg/env1,myorg/env2'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'trusted_environments."myorg/env1"',
+        'trust'
+      ])
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'trusted_environments."myorg/env2"',
+        'trust'
+      ])
+      expect(core.info).toHaveBeenCalledWith('Trusted environment: myorg/env1')
+      expect(core.info).toHaveBeenCalledWith('Trusted environment: myorg/env2')
+    })
+
+    it('skips trusted environments when empty', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).not.toHaveBeenCalledWith(
+        'flox',
+        expect.arrayContaining(['trusted_environments'])
+      )
+    })
+
+    it('disables upgrade notifications by default', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).toHaveBeenCalledWith('flox', [
+        'config',
+        '--set',
+        'upgrade_notifications',
+        'false'
+      ])
+      expect(core.info).toHaveBeenCalledWith('Upgrade notifications disabled')
+    })
+
+    it('skips upgrade notification config when false', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-upgrade-notifications') return 'false'
+        return ''
+      })
+      exec.exec.mockResolvedValue(0)
+
+      await main.configureFlox()
+
+      expect(exec.exec).not.toHaveBeenCalledWith(
+        'flox',
+        expect.arrayContaining(['upgrade_notifications'])
+      )
+    })
+  })
+
   describe('getDownloadUrl', () => {
     const originalPlatform = process.platform
     const originalArch = process.arch
