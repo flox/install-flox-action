@@ -69,6 +69,13 @@ inputs:
       Suppress flox upgrade notifications in CI output.
     default: "true"
 
+  extra-flox-config:
+    description: >-
+      Additional flox config key=value pairs, one per
+      line (e.g. search_limit=20). Applied via
+      flox config --set for each pair.
+    default: ""
+
 outputs:
   flox-version:
     description: "The installed flox version"
