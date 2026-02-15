@@ -29,6 +29,60 @@ inputs:
     description: "Number of retries for downloading and installing Flox"
     default: "3"
 
+  floxhub-token:
+    description: >-
+      FloxHub authentication token for accessing private
+      environments and FloxHub features.
+    default: ""
+
+  github-token:
+    description: >-
+      GitHub token for authenticated API requests.
+      Prevents rate limiting when Nix resolves flake
+      inputs from GitHub.
+    default: ${{ github.token }}
+
+  trusted-environments:
+    description: >-
+      Comma-separated list of FloxHub environments to
+      trust automatically (e.g. owner/env1,owner/env2).
+    default: ""
+
+  extra-nix-config:
+    description: >-
+      Additional lines to append to /etc/nix/nix.conf.
+    default: ""
+
+  extra-substituters:
+    description: >-
+      Space-separated Nix binary cache URLs to add as
+      trusted substituters.
+    default: ""
+
+  extra-substituter-keys:
+    description: >-
+      Space-separated public keys for the extra
+      substituters.
+    default: ""
+
+  proxy:
+    description: >-
+      HTTP/HTTPS/SOCKS5 proxy URL for network requests.
+    default: ""
+
+  disable-upgrade-notifications:
+    description: >-
+      Suppress flox upgrade notifications in CI output.
+    default: "true"
+
+outputs:
+  flox-version:
+    description: "The installed flox version"
+  flox-path:
+    description: "Absolute path to the flox binary"
+  nix-detected:
+    description: "Whether Nix was pre-installed (true/false)"
+
 runs:
   using: 'node20'
   main: 'dist/index.js'
