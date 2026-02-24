@@ -60,24 +60,32 @@ function getRestoreKeys(downloadUrl) {
   return [`install-flox/${channel}/${version}/`, `install-flox/${channel}/`]
 }
 
-function getCachePath() {
+function getCacheDir() {
   return process.env.RUNNER_TEMP
     ? path.join(process.env.RUNNER_TEMP, 'flox-package-cache')
     : path.join('/tmp', 'flox-package-cache')
+}
+
+function getCachePath(downloadUrl) {
+  const dir = getCacheDir()
+  if (!downloadUrl) return dir
+  const url = new URL(downloadUrl)
+  const filename = path.basename(url.pathname)
+  return path.join(dir, filename)
 }
 
 async function restorePackage(downloadUrl) {
   try {
     const cacheKey = getCacheKey(downloadUrl)
     const restoreKeys = getRestoreKeys(downloadUrl)
-    const cachePath = getCachePath()
+    const cacheDir = getCacheDir()
 
     core.info(`Attempting to restore cache with key: ${cacheKey}`)
-    const hitKey = await cache.restoreCache([cachePath], cacheKey, restoreKeys)
+    const hitKey = await cache.restoreCache([cacheDir], cacheKey, restoreKeys)
 
     if (hitKey) {
       core.info(`Cache hit: ${hitKey}`)
-      return cachePath
+      return getCachePath(downloadUrl)
     }
 
     core.info('Cache miss')
@@ -88,11 +96,12 @@ async function restorePackage(downloadUrl) {
   }
 }
 
-async function savePackage(filePath, downloadUrl) {
+async function savePackage(downloadUrl) {
   try {
     const cacheKey = getCacheKey(downloadUrl)
+    const cacheDir = getCacheDir()
     core.info(`Saving package to cache with key: ${cacheKey}`)
-    await cache.saveCache([filePath], cacheKey)
+    await cache.saveCache([cacheDir], cacheKey)
     core.info(`Package cached with key: ${cacheKey}`)
   } catch (error) {
     core.warning(`Cache save failed: ${error.message}`)
@@ -102,6 +111,7 @@ async function savePackage(filePath, downloadUrl) {
 module.exports = {
   getCacheKey,
   getRestoreKeys,
+  getCacheDir,
   getCachePath,
   restorePackage,
   savePackage,
