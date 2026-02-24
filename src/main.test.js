@@ -121,8 +121,12 @@ describe('main', () => {
         }
         return 0
       })
-      cache.restorePackage.mockResolvedValue('/tmp/flox-package-cache')
-      cache.getCachePath.mockReturnValue('/tmp/flox-package-cache')
+      cache.restorePackage.mockResolvedValue(
+        '/tmp/flox-package-cache/flox.x86_64-linux.deb'
+      )
+      cache.getCachePath.mockReturnValue(
+        '/tmp/flox-package-cache/flox.x86_64-linux.deb'
+      )
 
       await main.run()
 
@@ -164,7 +168,9 @@ describe('main', () => {
         return 0
       })
       cache.restorePackage.mockResolvedValue(null)
-      cache.getCachePath.mockReturnValue('/tmp/flox-package-cache')
+      cache.getCachePath.mockReturnValue(
+        '/tmp/flox-package-cache/flox.x86_64-linux.deb'
+      )
       cache.savePackage.mockResolvedValue(undefined)
 
       await main.run()
@@ -172,7 +178,7 @@ describe('main', () => {
       expect(cache.restorePackage).toHaveBeenCalled()
       expect(core.exportVariable).toHaveBeenCalledWith(
         'DOWNLOADED_FILE',
-        '/tmp/flox-package-cache'
+        '/tmp/flox-package-cache/flox.x86_64-linux.deb'
       )
       expect(core.exportVariable).toHaveBeenCalledWith(
         'PRESERVE_DOWNLOAD',
