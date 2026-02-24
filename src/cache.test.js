@@ -7,6 +7,7 @@ jest.mock('@actions/cache')
 const {
   getCacheKey,
   getRestoreKeys,
+  getCacheDir,
   getCachePath,
   restorePackage,
   savePackage,
@@ -118,7 +119,7 @@ describe('cache', () => {
     })
   })
 
-  describe('getCachePath', () => {
+  describe('getCacheDir', () => {
     const originalEnv = process.env
 
     afterEach(() => {
@@ -127,13 +128,35 @@ describe('cache', () => {
 
     it('uses RUNNER_TEMP when available', () => {
       process.env = { ...originalEnv, RUNNER_TEMP: '/runner/temp' }
-      expect(getCachePath()).toBe('/runner/temp/flox-package-cache')
+      expect(getCacheDir()).toBe('/runner/temp/flox-package-cache')
     })
 
     it('falls back to /tmp when RUNNER_TEMP is not set', () => {
       process.env = { ...originalEnv }
       delete process.env.RUNNER_TEMP
-      expect(getCachePath()).toBe('/tmp/flox-package-cache')
+      expect(getCacheDir()).toBe('/tmp/flox-package-cache')
+    })
+  })
+
+  describe('getCachePath', () => {
+    const originalEnv = process.env
+
+    afterEach(() => {
+      process.env = originalEnv
+    })
+
+    it('returns dir with package filename when downloadUrl provided', () => {
+      process.env = { ...originalEnv, RUNNER_TEMP: '/runner/temp' }
+      expect(
+        getCachePath(
+          'https://downloads.flox.dev/by-env/stable/deb/flox.x86_64-linux.deb'
+        )
+      ).toBe('/runner/temp/flox-package-cache/flox.x86_64-linux.deb')
+    })
+
+    it('returns just the dir when no downloadUrl', () => {
+      process.env = { ...originalEnv, RUNNER_TEMP: '/runner/temp' }
+      expect(getCachePath()).toBe('/runner/temp/flox-package-cache')
     })
   })
 
@@ -200,7 +223,6 @@ describe('cache', () => {
       cache.saveCache.mockResolvedValue(1)
 
       await savePackage(
-        '/tmp/flox-package-cache',
         'https://downloads.flox.dev/by-env/stable/deb/flox.x86_64-linux.deb'
       )
 
@@ -218,7 +240,6 @@ describe('cache', () => {
       cache.saveCache.mockRejectedValue(new Error('Cache quota exceeded'))
 
       await savePackage(
-        '/tmp/flox-package-cache',
         'https://downloads.flox.dev/by-env/stable/deb/flox.x86_64-linux.deb'
       )
 
