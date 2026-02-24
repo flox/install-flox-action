@@ -2,6 +2,7 @@ const core = require('@actions/core')
 const exec = require('@actions/exec')
 const fs = require('fs')
 const which = require('which')
+const cache = require('./cache')
 
 jest.mock('@actions/core')
 jest.mock('@actions/exec')
@@ -11,6 +12,7 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn()
 }))
 jest.mock('which')
+jest.mock('./cache')
 
 const main = require('./main')
 
@@ -93,6 +95,120 @@ describe('main', () => {
         expect.stringContaining('Nix found at')
       )
       expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'true')
+    })
+
+    it('restores from cache and skips download when use-cache is true and cache hits', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix') return Promise.resolve(null)
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'use-cache') return 'true'
+        if (name === 'channel') return 'stable'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+      cache.restorePackage.mockResolvedValue('/tmp/flox-package-cache')
+      cache.getCachePath.mockReturnValue('/tmp/flox-package-cache')
+
+      await main.run()
+
+      expect(cache.restorePackage).toHaveBeenCalled()
+      expect(core.exportVariable).toHaveBeenCalledWith('SKIP_DOWNLOAD', 'true')
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'PRESERVE_DOWNLOAD',
+        'true'
+      )
+      expect(exec.exec).toHaveBeenCalledWith('bash', [
+        '-c',
+        expect.stringContaining('install-flox.sh')
+      ])
+      expect(cache.savePackage).not.toHaveBeenCalled()
+    })
+
+    it('downloads and saves to cache when use-cache is true and cache misses', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix') return Promise.resolve(null)
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'use-cache') return 'true'
+        if (name === 'channel') return 'stable'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+      cache.restorePackage.mockResolvedValue(null)
+      cache.getCachePath.mockReturnValue('/tmp/flox-package-cache')
+      cache.savePackage.mockResolvedValue(undefined)
+
+      await main.run()
+
+      expect(cache.restorePackage).toHaveBeenCalled()
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'DOWNLOADED_FILE',
+        '/tmp/flox-package-cache'
+      )
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'PRESERVE_DOWNLOAD',
+        'true'
+      )
+      expect(cache.savePackage).toHaveBeenCalled()
+    })
+
+    it('does not use cache when use-cache is false', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix') return Promise.resolve(null)
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'channel') return 'stable'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+
+      await main.run()
+
+      expect(cache.restorePackage).not.toHaveBeenCalled()
+      expect(cache.savePackage).not.toHaveBeenCalled()
     })
 
     it('catches errors and calls setFailed', async () => {

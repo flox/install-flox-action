@@ -3,6 +3,7 @@ const exec = require('@actions/exec')
 const fs = require('fs')
 const path = require('path')
 const which = require('which')
+const { restorePackage, savePackage, getCachePath } = require('./cache')
 
 export function scriptPath(name) {
   return path.join(__dirname, '..', 'scripts', name)
@@ -289,8 +290,33 @@ export async function run() {
     const nixDetected = nix !== null
 
     if (!nixDetected) {
-      await getDownloadUrl()
+      const downloadUrl = await getDownloadUrl()
+      const useCache = core.getInput('use-cache') === 'true'
+
+      let cacheHit = false
+      let cachedPath = null
+
+      if (useCache) {
+        cachedPath = await restorePackage(downloadUrl)
+        if (cachedPath) {
+          cacheHit = true
+          core.exportVariable('DOWNLOADED_FILE', cachedPath)
+          core.exportVariable('SKIP_DOWNLOAD', 'true')
+          core.exportVariable('PRESERVE_DOWNLOAD', 'true')
+        } else {
+          const cachePath = getCachePath()
+          core.exportVariable('DOWNLOADED_FILE', cachePath)
+          core.exportVariable('PRESERVE_DOWNLOAD', 'true')
+        }
+      }
+
       await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
+
+      if (useCache && !cacheHit) {
+        const filePath =
+          cachedPath || process.env.DOWNLOADED_FILE || getCachePath()
+        await savePackage(filePath, downloadUrl)
+      }
     } else {
       core.info(`Nix found at ${nix}`)
       await installViaExistingNix()
