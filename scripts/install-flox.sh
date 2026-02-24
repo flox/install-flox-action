@@ -14,8 +14,6 @@ if [ -z "$INPUT_DOWNLOAD_URL" ]; then
 fi
 
 
-echo "Downloading flox..."
-
 RETRIES="${RETRIES:-3}"
 
 PROXY_ARGS=""
@@ -24,14 +22,25 @@ if [ -n "${PROXY:-}" ]; then
   echo "Using proxy: $PROXY"
 fi
 
-DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
-curl --user-agent "install-flox-action" \
-    $PROXY_ARGS \
-    --retry "$RETRIES" \
-    --retry-delay 5 \
-    --retry-all-errors \
-    "$INPUT_DOWNLOAD_URL" \
-    --output "$DOWNLOADED_FILE";
+if [[ -n "${SKIP_DOWNLOAD:-}" ]] && [[ -f "${DOWNLOADED_FILE:-}" ]]; then
+  echo "Using cached package: $DOWNLOADED_FILE"
+else
+  echo "Downloading flox..."
+
+  if [[ -z "${DOWNLOADED_FILE:-}" ]]; then
+    DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
+  else
+    mkdir -p "$(dirname "$DOWNLOADED_FILE")"
+  fi
+
+  curl --user-agent "install-flox-action" \
+      $PROXY_ARGS \
+      --retry "$RETRIES" \
+      --retry-delay 5 \
+      --retry-all-errors \
+      "$INPUT_DOWNLOAD_URL" \
+      --output "$DOWNLOADED_FILE";
+fi
 
 
 echo "Installing flox..."
@@ -77,5 +86,7 @@ for attempt in $(seq 1 "$INSTALL_RETRIES"); do
   fi
 done
 
-# Remove downloaded file
-rm "$DOWNLOADED_FILE"
+# Remove downloaded file unless preserving for cache
+if [[ -z "${PRESERVE_DOWNLOAD:-}" ]]; then
+  rm "$DOWNLOADED_FILE"
+fi

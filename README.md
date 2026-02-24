@@ -81,6 +81,7 @@ jobs:
 | `channel` | One of: `stable`, `qa`, `nightly`, or a commit hash | `"stable"` |
 | `disable-metrics` | Disable sending anonymous usage statistics to flox | `"false"` |
 | `retries` | Number of retries for downloading and installing Flox | `"3"` |
+| `use-cache` | Cache the downloaded flox package to speed up subsequent runs | `"true"` |
 
 ### Example with custom inputs
 
@@ -92,12 +93,31 @@ jobs:
     retries: "5"
 ```
 
-## 🚀 Caching
+## 🚀 Package Download Caching
+
+The downloaded flox installer package (`.deb`/`.rpm`/`.pkg`) is cached by default to speed up subsequent workflow runs. The actual package installation still runs every time -- caching only skips the download step.
+
+To disable caching:
+
+```yml
+- name: Install flox
+  uses: flox/install-flox-action@v2.2.0
+  with:
+    use-cache: "false"
+```
+
+**How cache keys work:**
+- **Pinned version** (e.g., `version: "1.3.2"`): The cache key is immutable and lives until evicted by GitHub's LRU policy.
+- **Unpinned/floating version** (default): The cache key includes today's date, so a fresh download happens once per day and is cached within that day.
+
+> **Note:** GitHub Actions caches are scoped to the branch, with fallback to the default branch. The repository-level cache limit is 10 GB with LRU eviction.
+
+## 🔄 Binary Caching
 
 Most packages from Nixpkgs are available via the [Flox Catalog][flox-catalog]. These are pre-built and downloaded from the Flox binary cache, except for packages that cannot be redistributed in binary format.
 
 For custom packages, use `flox build` and `flox publish` to get binary caching out of the box with a [FloxHub][floxhub] account.
-  
+
 > **Note:** If you're familiar with Nix and prefer managing your own infrastructure, see [flox/configure-nix-action][configure-nix-action] for setting up a custom binary cache. This is significantly more complex and not recommended for most users.
 
 ## 📫 Questions?
