@@ -76,6 +76,10 @@ inputs:
       flox config --set for each pair.
     default: ""
 
+  use-cache:
+    description: "Cache the downloaded flox package to speed up subsequent runs"
+    default: "true"
+
 outputs:
   flox-version:
     description: "The installed flox version"
