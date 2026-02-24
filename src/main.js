@@ -304,7 +304,7 @@ export async function run() {
           core.exportVariable('SKIP_DOWNLOAD', 'true')
           core.exportVariable('PRESERVE_DOWNLOAD', 'true')
         } else {
-          const cachePath = getCachePath()
+          const cachePath = getCachePath(downloadUrl)
           core.exportVariable('DOWNLOADED_FILE', cachePath)
           core.exportVariable('PRESERVE_DOWNLOAD', 'true')
         }
@@ -313,9 +313,7 @@ export async function run() {
       await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
 
       if (useCache && !cacheHit) {
-        const filePath =
-          cachedPath || process.env.DOWNLOADED_FILE || getCachePath()
-        await savePackage(filePath, downloadUrl)
+        await savePackage(downloadUrl)
       }
     } else {
       core.info(`Nix found at ${nix}`)
