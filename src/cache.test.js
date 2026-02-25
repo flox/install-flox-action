@@ -64,7 +64,7 @@ describe('cache', () => {
       )
 
       expect(key).toMatch(
-        /^install-flox\/stable\/latest\/\d{4}-\d{2}-\d{2}\/linux-x64-deb$/
+        /^install-flox\/stable\/latest\/linux-x64-deb\/\d{4}-\d{2}-\d{2}$/
       )
     })
 
@@ -112,10 +112,7 @@ describe('cache', () => {
         'https://downloads.flox.dev/by-env/stable/deb/flox.x86_64-linux.deb'
       )
 
-      expect(keys).toEqual([
-        'install-flox/stable/latest/',
-        'install-flox/stable/'
-      ])
+      expect(keys).toEqual(['install-flox/stable/latest/linux-x64-deb/'])
     })
   })
 
