@@ -322,7 +322,7 @@ describe('main', () => {
       )
     })
 
-    it('exports DISABLE_METRICS and RETRIES env vars', async () => {
+    it('exports FLOX_DISABLE_METRICS and RETRIES env vars', async () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' })
       Object.defineProperty(process, 'arch', { value: 'arm64' })
       core.getInput.mockImplementation(name => {
@@ -336,7 +336,7 @@ describe('main', () => {
       await main.getDownloadUrl()
 
       expect(core.exportVariable).toHaveBeenCalledWith(
-        'DISABLE_METRICS',
+        'FLOX_DISABLE_METRICS',
         'true'
       )
       expect(core.exportVariable).toHaveBeenCalledWith('RETRIES', '5')
