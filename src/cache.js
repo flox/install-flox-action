@@ -57,7 +57,10 @@ function getRestoreKeys(downloadUrl) {
   const channel = core.getInput('channel') || 'stable'
   const version = core.getInput('version') || 'latest'
 
-  return [`install-flox/${channel}/${version}/`, `install-flox/${channel}/`]
+  return [
+    `install-flox/${channel}/${version}/${os}-${arch}-${ext}/`,
+    `install-flox/${channel}/${version}/`,
+  ]
 }
 
 function getCacheDir() {
