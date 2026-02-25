@@ -82,16 +82,46 @@ jobs:
 | `disable-metrics` | Disable sending anonymous usage statistics to flox | `"false"` |
 | `retries` | Number of retries for downloading and installing Flox | `"3"` |
 | `use-cache` | Cache the downloaded flox package to speed up subsequent runs | `"true"` |
+| `github-token` | GitHub token for Nix flake rate limiting | `${{ github.token }}` |
+| `trusted-environments` | Comma-separated FloxHub envs to trust (e.g. `owner/env1,owner/env2`) | `""` |
+| `extra-nix-config` | Additional lines to append to `/etc/nix/nix.conf` | `""` |
+| `extra-substituters` | Space-separated Nix binary cache URLs | `""` |
+| `extra-substituter-keys` | Space-separated public keys for extra substituters | `""` |
+| `proxy` | HTTP/HTTPS/SOCKS5 proxy URL for network requests | `""` |
+| `disable-upgrade-notifications` | Suppress flox upgrade notifications in CI output | `"true"` |
+| `extra-flox-config` | Key=value pairs for `flox config --set`, one per line | `""` |
+
+## 📤 Outputs
+
+| Output | Description |
+|--------|-------------|
+| `flox-version` | The installed flox version string |
+| `flox-path` | Absolute path to the flox binary |
+| `nix-detected` | Whether Nix was pre-installed (`true`/`false`) |
 
 ### Example with custom inputs
 
 ```yml
 - name: Install flox
-  uses: flox/install-flox-action@v2.1.0
+  uses: flox/install-flox-action@v2.2.0
   with:
     channel: nightly
     retries: "5"
 ```
+
+### Example with extra substituters
+
+```yml
+- name: Install flox
+  uses: flox/install-flox-action@v2.2.0
+  with:
+    extra-substituters: "https://my-cache.example.com"
+    extra-substituter-keys: "my-cache.example.com-1:abc123..."
+```
+
+## 🔧 Pre-installed Nix
+
+When Nix is already present on the runner (e.g. from [cachix/install-nix-action][cachix-nix] or [DeterminateSystems/nix-installer-action][detsys-nix]), this action installs Flox via `nix profile install` instead of downloading a platform package. The `nix-detected` output will be `true` in this case.
 
 ## 🚀 Package Download Caching
 
@@ -147,3 +177,5 @@ MIT licensed. See [LICENSE](./LICENSE).
 [configure-nix-action]: https://github.com/flox/configure-nix-action
 [flox-catalog]: https://flox.dev/docs/concepts/packages-and-catalog/
 [floxhub]: https://hub.flox.dev
+[cachix-nix]: https://github.com/cachix/install-nix-action
+[detsys-nix]: https://github.com/DeterminateSystems/nix-installer-action
