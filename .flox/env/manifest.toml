@@ -1,7 +1,8 @@
-version = 1
+schema-version = "1.10.0"
 
 [install]
-nodejs_20.pkg-path = "nodejs_20"
+nodejs.pkg-path = "nodejs"
+nodejs.version = "24"
 
 [vars]
 
@@ -12,9 +13,4 @@ nodejs_20.pkg-path = "nodejs_20"
 [services]
 
 [options]
-systems = [
-  "aarch64-darwin",
-  "aarch64-linux",
-  "x86_64-darwin",
-  "x86_64-linux",
-]
+systems = ["aarch64-darwin", "aarch64-linux", "x86_64-darwin", "x86_64-linux"]
