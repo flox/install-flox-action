@@ -12,9 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  FLOX_DISABLE_METRICS: "true"
-
 jobs:
 
   test-javascript:
@@ -34,6 +31,8 @@ jobs:
 
       - name: "Install Flox"
         uses: "./"
+        with:
+          disable-metrics: true
 
       - name: "Cache Dependencies"
         id: cache

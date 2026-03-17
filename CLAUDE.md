@@ -12,6 +12,9 @@ A GitHub Action that installs [flox](https://github.com/flox/flox) on GitHub Act
 # Enter development environment (uses flox with Node.js 20)
 flox activate
 
+# Install dependencies (required before running checks)
+npm install
+
 # Run all checks (format, test, package)
 npm run all
 
@@ -37,7 +40,7 @@ The action is a JavaScript GitHub Action (node20 runtime) that:
 - Fails if Nix is already installed (flox includes its own Nix)
 - Supports channels: `stable`, `qa`, `nightly`, or commit hash
 - Download and installation retries are configurable via `retries` input
-- Sets `DISABLE_METRICS` env var and configures flox accordingly
+- Sets `FLOX_DISABLE_METRICS` env var and configures flox accordingly
 
 ## Testing
 
