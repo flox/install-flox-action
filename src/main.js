@@ -138,6 +138,9 @@ export async function installViaExistingNix() {
 }
 
 export async function run() {
+  const disable_metrics = core.getInput('disable-metrics')
+  core.exportVariable('FLOX_DISABLE_METRICS', disable_metrics)
+
   core.startGroup('Download & Install flox')
   const nix = await which('nix', { nothrow: true })
   if (nix === null) {
