@@ -34,9 +34,6 @@ export async function getDownloadUrl() {
     version = '-' + core.getInput('version')
   }
 
-  const disable_metrics = core.getInput('disable-metrics')
-  core.exportVariable('DISABLE_METRICS', disable_metrics)
-
   const retries = core.getInput('retries') || '3'
   core.exportVariable('RETRIES', retries)
 
@@ -138,6 +135,9 @@ export async function installViaExistingNix() {
 }
 
 export async function run() {
+  const disable_metrics = core.getInput('disable-metrics')
+  core.exportVariable('FLOX_DISABLE_METRICS', disable_metrics)
+
   core.startGroup('Download & Install flox')
   const nix = await which('nix', { nothrow: true })
   if (nix === null) {

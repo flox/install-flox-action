@@ -37,7 +37,7 @@ The action is a JavaScript GitHub Action (node20 runtime) that:
 - Fails if Nix is already installed (flox includes its own Nix)
 - Supports channels: `stable`, `qa`, `nightly`, or commit hash
 - Download and installation retries are configurable via `retries` input
-- Sets `DISABLE_METRICS` env var and configures flox accordingly
+- Sets `FLOX_DISABLE_METRICS` env var when `disable-metrics` input is true
 
 ## Testing
 

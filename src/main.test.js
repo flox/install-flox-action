@@ -23,10 +23,18 @@ describe('main', () => {
   describe('run', () => {
     it('uses package installation when nix is not found', async () => {
       which.mockResolvedValue(null)
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-metrics') return 'true'
+        return ''
+      })
       exec.exec.mockResolvedValue(0)
 
       await main.run()
 
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'FLOX_DISABLE_METRICS',
+        'true'
+      )
       expect(core.startGroup).toHaveBeenCalledWith('Download & Install flox')
       expect(exec.exec).toHaveBeenCalledWith('bash', [
         '-c',
@@ -37,12 +45,20 @@ describe('main', () => {
 
     it('uses nix profile install when nix is found', async () => {
       which.mockResolvedValue('/nix/var/nix/profiles/default/bin/nix')
+      core.getInput.mockImplementation(name => {
+        if (name === 'disable-metrics') return 'true'
+        return ''
+      })
       fs.existsSync.mockReturnValue(true)
       fs.readFileSync.mockReturnValue('')
       exec.exec.mockResolvedValue(0)
 
       await main.run()
 
+      expect(core.exportVariable).toHaveBeenCalledWith(
+        'FLOX_DISABLE_METRICS',
+        'true'
+      )
       expect(core.info).toHaveBeenCalledWith(
         'Nix found at /nix/var/nix/profiles/default/bin/nix'
       )
@@ -322,11 +338,10 @@ describe('main', () => {
       )
     })
 
-    it('exports DISABLE_METRICS and RETRIES env vars', async () => {
+    it('exports RETRIES env var', async () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' })
       Object.defineProperty(process, 'arch', { value: 'arm64' })
       core.getInput.mockImplementation(name => {
-        if (name === 'disable-metrics') return 'true'
         if (name === 'retries') return '5'
         if (name === 'channel') return 'stable'
         return ''
@@ -335,10 +350,6 @@ describe('main', () => {
 
       await main.getDownloadUrl()
 
-      expect(core.exportVariable).toHaveBeenCalledWith(
-        'DISABLE_METRICS',
-        'true'
-      )
       expect(core.exportVariable).toHaveBeenCalledWith('RETRIES', '5')
     })
   })
