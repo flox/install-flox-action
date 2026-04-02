@@ -27,7 +27,8 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v6"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
 
       - name: "Install Flox"
         uses: "./"
@@ -74,7 +75,8 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v6"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
 
       - name: "Test Local Action"
         uses: "./"
@@ -108,7 +110,8 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v6"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
 
       - name: "Install Flox with new inputs"
         id: install
@@ -148,15 +151,18 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v6"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
 
       - name: "Install Nix (DeterminateSystems)"
         if: matrix.nix-installer == 'determinate-systems'
-        uses: "DeterminateSystems/nix-installer-action@main"
+        uses: DeterminateSystems/nix-installer-action@430608d219b9321ec0c98eb6c37245a39aa6756e # main
+
 
       - name: "Install Nix (Cachix)"
         if: matrix.nix-installer == 'cachix'
-        uses: "cachix/install-nix-action@v31"
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe # v31
+
 
       - name: "Install Flox (using existing Nix)"
         uses: "./"
@@ -182,7 +188,8 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v6"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
 
       - name: "Install act"
         run: >-
@@ -220,7 +227,8 @@ jobs:
 
     steps:
       - name: "Slack Notification"
-        uses: "rtCamp/action-slack-notify@v2"
+        uses: rtCamp/action-slack-notify@e31e87e03dd19038e411e38ae27cbad084a90661 # v2
+
         env:
           SLACK_TITLE:      "Something broke CI for flox/flox on main"
           SLACK_FOOTER:     "Thank you for caring"
