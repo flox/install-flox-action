@@ -14,18 +14,21 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
         with:
           fetch-depth: 0
 
       - name: "Install Flox"
-        uses: flox/install-flox-action@v2.3.0
+        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+
 
       - name: "Update Flox Environment"
         run: flox update
 
       - name: "Create Pull Request"
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8
+
         with:
           token: ${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}
           commit-message: "chore: update flox environment"
