@@ -23,6 +23,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
+          - "ubuntu-slim"
           - "macos-latest"
 
     steps:
@@ -85,10 +86,12 @@ jobs:
           channel: "${{ matrix.release-env }}"
           disable-metrics: true
 
-
-      - name: "Test: flox --version"
+      - name: "Test: flox"
         run: |
           flox --version
+          flox init
+          flox install hello
+          flox activate -- hello
 
       - name: "Test: flox config"
         run: |
@@ -136,6 +139,13 @@ jobs:
           flox config --list | grep -q 'disable_metrics = true'
           flox config --list | grep -q 'upgrade_notifications = false'
 
+      - name: "Test: flox"
+        run: |
+          flox --version
+          flox init
+          flox install hello
+          flox activate -- hello
+
   test-existing-nix:
     name: "Test with Existing Nix (${{ matrix.nix-installer }})"
     runs-on: ${{ matrix.os }}
@@ -172,9 +182,12 @@ jobs:
         with:
           disable-metrics: true
 
-      - name: "Test: flox --version"
+      - name: "Test: flox"
         run: |
           flox --version
+          flox init
+          flox install hello
+          flox activate -- hello
 
       - name: "Test: flox config"
         run: |
