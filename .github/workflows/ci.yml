@@ -202,7 +202,7 @@ jobs:
 
   test-act:
     name: "Test with nektos/act"
-    runs-on: "ubuntu-slim"
+    runs-on: "ubuntu-latest"
     timeout-minutes: 30
 
     steps:
