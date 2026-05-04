@@ -89,6 +89,7 @@ jobs:
       - name: "Test: flox"
         run: |
           flox --version
+          cd $(mktemp -d)
           flox init
           flox install hello
           flox activate -- hello
@@ -142,6 +143,7 @@ jobs:
       - name: "Test: flox"
         run: |
           flox --version
+          cd $(mktemp -d)
           flox init
           flox install hello
           flox activate -- hello
@@ -185,6 +187,7 @@ jobs:
       - name: "Test: flox"
         run: |
           flox --version
+          cd $(mktemp -d)
           flox init
           flox install hello
           flox activate -- hello
