@@ -68,6 +68,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
+          - "ubuntu-slim"
           - "macos-latest"
         release-env:
           - stable
@@ -106,6 +107,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
+          - "ubuntu-slim"
           - "macos-latest"
 
     steps:
@@ -144,6 +146,7 @@ jobs:
       matrix:
         os:
           - "ubuntu-latest"
+          - "ubuntu-slim"
           - "macos-latest"
         nix-installer:
           - "determinate-systems"
@@ -183,7 +186,7 @@ jobs:
 
   test-act:
     name: "Test with nektos/act"
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-slim"
     timeout-minutes: 30
 
     steps:
@@ -213,7 +216,7 @@ jobs:
 
   report-failure:
     name: "Report Failure"
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-slim"
     timeout-minutes: 30
 
     if: ${{ failure() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule') }}
