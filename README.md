@@ -36,7 +36,7 @@
   </a>
 </p>
 
-Installs [flox][flox-github] on GitHub Actions for the supported platforms:
+Installs [Flox][flox-github] on GitHub Actions for the supported platforms:
 Linux and macOS. Available on the [GitHub Marketplace][marketplace].
 
 [Flox][flox-website] is a virtual environment and package manager all in one. With Flox you 
@@ -63,14 +63,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Install flox
-      uses: flox/install-flox-action@v2.2.0
+      - name: Install Flox
+        uses: flox/install-flox-action@v2
 
-    - name: Build
-      run: flox build
+      - name: Build
+        run: flox build
 ```
 
 ## ⚙️ Inputs
@@ -102,8 +102,8 @@ jobs:
 ### Example with custom inputs
 
 ```yml
-- name: Install flox
-  uses: flox/install-flox-action@v2.2.0
+- name: Install Flox
+  uses: flox/install-flox-action@v2
   with:
     channel: nightly
     retries: "5"
@@ -112,8 +112,8 @@ jobs:
 ### Example with extra substituters
 
 ```yml
-- name: Install flox
-  uses: flox/install-flox-action@v2.2.0
+- name: Install Flox
+  uses: flox/install-flox-action@v2
   with:
     extra-substituters: "https://my-cache.example.com"
     extra-substituter-keys: "my-cache.example.com-1:abc123..."
@@ -130,8 +130,8 @@ The downloaded flox installer package (`.deb`/`.rpm`/`.pkg`) is cached by defaul
 To disable caching:
 
 ```yml
-- name: Install flox
-  uses: flox/install-flox-action@v2.2.0
+- name: Install Flox
+  uses: flox/install-flox-action@v2
   with:
     use-cache: "false"
 ```
