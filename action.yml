@@ -1,6 +1,6 @@
-name: "Install flox"
-description: "Installs flox on GitHub Actions for the supported platforms: GNU/Linux and macOS."
-author: "flox <hello@floxdev.com>"
+name: "Install Flox"
+description: "Install Flox on GitHub Actions runners for GNU/Linux and macOS"
+author: "Flox <hello@flox.dev>"
 
 branding:
   color: "blue"
