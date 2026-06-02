@@ -226,6 +226,66 @@ describe('main', () => {
 
       expect(core.setFailed).toHaveBeenCalledWith('something went wrong')
     })
+
+    it('does not write the job summary by default', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix') return Promise.resolve(null)
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'channel') return 'stable'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        return ''
+      })
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+
+      await main.run()
+
+      expect(core.summary.write).not.toHaveBeenCalled()
+    })
+
+    it('writes the job summary when write-summary is true', async () => {
+      which.mockImplementation(cmd => {
+        if (cmd === 'nix') return Promise.resolve(null)
+        if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+        return Promise.resolve(null)
+      })
+      core.getInput.mockImplementation(name => {
+        if (name === 'channel') return 'stable'
+        if (name === 'disable-upgrade-notifications') return 'true'
+        if (name === 'write-summary') return 'true'
+        return ''
+      })
+      exec.exec.mockImplementation(async (cmd, args, opts) => {
+        if (
+          cmd === 'flox' &&
+          args &&
+          args[0] === '--version' &&
+          opts &&
+          opts.listeners
+        ) {
+          opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+        }
+        return 0
+      })
+
+      await main.run()
+
+      expect(core.summary.addHeading).toHaveBeenCalledWith('Flox Installation')
+      expect(core.summary.write).toHaveBeenCalled()
+    })
   })
 
   describe('configureNixSubstituter', () => {

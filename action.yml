@@ -69,6 +69,13 @@ inputs:
       Suppress flox upgrade notifications in CI output.
     default: "true"
 
+  write-summary:
+    description: >-
+      Write a Flox installation summary table to the GitHub Actions
+      job summary ($GITHUB_STEP_SUMMARY). Off by default to avoid
+      cluttering summaries used for other output.
+    default: "false"
+
   extra-flox-config:
     description: >-
       Additional flox config key=value pairs, one per

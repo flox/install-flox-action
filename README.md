@@ -89,6 +89,7 @@ jobs:
 | `extra-substituter-keys` | Space-separated public keys for extra substituters | `""` |
 | `proxy` | HTTP/HTTPS/SOCKS5 proxy URL for network requests | `""` |
 | `disable-upgrade-notifications` | Suppress flox upgrade notifications in CI output | `"true"` |
+| `write-summary` | Write a Flox installation summary to the job summary page | `"false"` |
 | `extra-flox-config` | Key=value pairs for `flox config --set`, one per line | `""` |
 
 ## 📤 Outputs
