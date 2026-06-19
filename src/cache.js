@@ -52,9 +52,13 @@ function getCacheKey(downloadUrl) {
 }
 
 function getRestoreKeys(downloadUrl) {
+  if (!isVersionPinned()) {
+    return []
+  }
+
   const { os, arch, ext } = parsePlatformInfo(downloadUrl)
   const channel = core.getInput('channel') || 'stable'
-  const version = core.getInput('version') || 'latest'
+  const version = core.getInput('version')
 
   return [`install-flox/${channel}/${version}/${os}-${arch}-${ext}/`]
 }
