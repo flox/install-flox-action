@@ -102,7 +102,7 @@ describe('cache', () => {
   })
 
   describe('getRestoreKeys', () => {
-    it('returns prefix-based fallback keys', () => {
+    it('returns no fallback keys for unpinned versions', () => {
       core.getInput.mockImplementation(name => {
         if (name === 'channel') return 'stable'
         return ''
@@ -112,7 +112,21 @@ describe('cache', () => {
         'https://downloads.flox.dev/by-env/stable/deb/flox.x86_64-linux.deb'
       )
 
-      expect(keys).toEqual(['install-flox/stable/latest/linux-x64-deb/'])
+      expect(keys).toEqual([])
+    })
+
+    it('returns a version-scoped prefix for pinned versions', () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'channel') return 'stable'
+        if (name === 'version') return '1.13.0'
+        return ''
+      })
+
+      const keys = getRestoreKeys(
+        'https://downloads.flox.dev/by-env/stable/deb/flox-1.13.0.x86_64-linux.deb'
+      )
+
+      expect(keys).toEqual(['install-flox/stable/1.13.0/linux-x64-deb/'])
     })
   })
 
@@ -191,6 +205,21 @@ describe('cache', () => {
 
       expect(result).toBeNull()
       expect(core.info).toHaveBeenCalledWith('Cache miss')
+    })
+
+    it('does not fall back to an older-date cache for unpinned versions', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'channel') return 'stable'
+        return ''
+      })
+      cache.restoreCache.mockResolvedValue(undefined)
+
+      await restorePackage(
+        'https://downloads.flox.dev/by-env/stable/deb/flox.x86_64-linux.deb'
+      )
+
+      const restoreKeysArg = cache.restoreCache.mock.calls[0][2]
+      expect(restoreKeysArg).toEqual([])
     })
 
     it('logs warning and returns null on error', async () => {
