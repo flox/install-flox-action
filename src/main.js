@@ -280,7 +280,9 @@ export async function writeJobSummary({
 export async function run() {
   try {
     const disable_metrics = core.getInput('disable-metrics')
-    core.exportVariable('FLOX_DISABLE_METRICS', disable_metrics)
+    if (disable_metrics !== '') {
+      core.exportVariable('FLOX_DISABLE_METRICS', disable_metrics)
+    }
 
     core.startGroup('Download & Install flox')
     const nix = await which('nix', { nothrow: true })

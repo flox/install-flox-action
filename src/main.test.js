@@ -917,3 +917,84 @@ describe('main', () => {
     })
   })
 })
+
+describe('run disable-metrics guard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    core.getInput.mockReturnValue('')
+    core.summary = {
+      addHeading: jest.fn().mockReturnThis(),
+      addTable: jest.fn().mockReturnThis(),
+      write: jest.fn().mockResolvedValue(undefined)
+    }
+  })
+
+  it('does not export FLOX_DISABLE_METRICS in run() when disable-metrics input is unset', async () => {
+    which.mockImplementation(cmd => {
+      if (cmd === 'nix')
+        return Promise.resolve('/nix/var/nix/profiles/default/bin/nix')
+      if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+      return Promise.resolve(null)
+    })
+    core.getInput.mockImplementation(name => {
+      if (name === 'disable-upgrade-notifications') return 'true'
+      return ''
+    })
+    fs.existsSync.mockReturnValue(true)
+    fs.readFileSync.mockReturnValue('')
+    exec.exec.mockImplementation(async (cmd, args, opts) => {
+      if (
+        cmd === 'flox' &&
+        args &&
+        args[0] === '--version' &&
+        opts &&
+        opts.listeners
+      ) {
+        opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+      }
+      return 0
+    })
+
+    await main.run()
+
+    expect(core.exportVariable).not.toHaveBeenCalledWith(
+      'FLOX_DISABLE_METRICS',
+      expect.anything()
+    )
+  })
+
+  it('exports FLOX_DISABLE_METRICS in run() when disable-metrics input is explicitly set', async () => {
+    which.mockImplementation(cmd => {
+      if (cmd === 'nix')
+        return Promise.resolve('/nix/var/nix/profiles/default/bin/nix')
+      if (cmd === 'flox') return Promise.resolve('/usr/local/bin/flox')
+      return Promise.resolve(null)
+    })
+    core.getInput.mockImplementation(name => {
+      if (name === 'disable-metrics') return 'true'
+      if (name === 'disable-upgrade-notifications') return 'true'
+      return ''
+    })
+    fs.existsSync.mockReturnValue(true)
+    fs.readFileSync.mockReturnValue('')
+    exec.exec.mockImplementation(async (cmd, args, opts) => {
+      if (
+        cmd === 'flox' &&
+        args &&
+        args[0] === '--version' &&
+        opts &&
+        opts.listeners
+      ) {
+        opts.listeners.stdout(Buffer.from('flox 1.7.6\n'))
+      }
+      return 0
+    })
+
+    await main.run()
+
+    expect(core.exportVariable).toHaveBeenCalledWith(
+      'FLOX_DISABLE_METRICS',
+      'true'
+    )
+  })
+})

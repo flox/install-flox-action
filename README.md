@@ -79,7 +79,7 @@ jobs:
 |-------|-------------|---------|
 | `version` | Select a specific version from a channel | `""` |
 | `channel` | One of: `stable`, `qa`, `nightly`, or a commit hash | `"stable"` |
-| `disable-metrics` | Disable sending anonymous usage statistics to flox | `"false"` |
+| `disable-metrics` | Disable sending anonymous usage statistics to flox | `""` |
 | `retries` | Number of retries for downloading and installing Flox | `"3"` |
 | `use-cache` | Cache the downloaded flox package to speed up subsequent runs | `"true"` |
 | `github-token` | GitHub token for Nix flake rate limiting | `${{ github.token }}` |

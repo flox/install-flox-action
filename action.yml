@@ -17,8 +17,11 @@ inputs:
     default: "stable"
 
   disable-metrics:
-    description: "Disable sending anonymous usage statistics to flox"
-    default: "false"
+    description: >-
+      Disable sending anonymous usage statistics to flox.
+      When unset, honors the FLOX_DISABLE_METRICS env var
+      (or the CLI default if neither is set).
+    default: ""
 
   base-url:
     deprecationMessage: "Please use channel option"
