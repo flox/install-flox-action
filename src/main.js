@@ -35,9 +35,6 @@ export async function getDownloadUrl() {
     version = '-' + core.getInput('version')
   }
 
-  const disable_metrics = core.getInput('disable-metrics')
-  core.exportVariable('FLOX_DISABLE_METRICS', disable_metrics)
-
   const retries = core.getInput('retries') || '3'
   core.exportVariable('RETRIES', retries)
 
