@@ -14,13 +14,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
 
         with:
           fetch-depth: 0
 
       - name: "Install Flox"
-        uses: flox/install-flox-action@6e70b2624cea62b0f11ea4a28e719fe1c86c028b # v2.4.1
+        uses: flox/install-flox-action@8c71d71672ea52e1494b168ac0f27d46b96068be # v2.5.2
 
 
       - name: "Update Flox Environment"
