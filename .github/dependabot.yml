@@ -30,9 +30,15 @@ updates:
       patterns:
         - "*"
   ignore:
+    # These packages went ESM-only at their next major (core@3, exec@3,
+    # cache@6). The action is CommonJS and bundled as CJS by ncc, so a major
+    # bump breaks the build. Stay on the CommonJS lines (cache tracks the
+    # v5-commonjs release) until the action itself migrates to ESM.
     - dependency-name: "@actions/core"
       update-types: ["version-update:semver-major"]
     - dependency-name: "@actions/exec"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "@actions/cache"
       update-types: ["version-update:semver-major"]
   labels:
     - "chore"
