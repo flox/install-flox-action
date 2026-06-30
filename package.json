@@ -61,18 +61,18 @@
     ]
   },
   "devDependencies": {
-    "@actions/cache": "^4.0.0",
-    "@actions/core": "^2.0.3",
-    "@actions/exec": "^2.0.0",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "@vercel/ncc": "^0.38.4",
-    "babel-preset-jest": "^30.3.0",
-    "jest": "^30.3.0",
-    "make-coverage-badge": "^1.2.0",
-    "md5": "^2.3.0",
-    "patch-package": "^8.0.1",
-    "prettier": "^3.8.1",
-    "which": "^6.0.1"
+    "@actions/cache": "5.1.0",
+    "@actions/core": "2.0.3",
+    "@actions/exec": "2.0.0",
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "7.29.2",
+    "@vercel/ncc": "0.38.4",
+    "babel-preset-jest": "30.3.0",
+    "jest": "30.3.0",
+    "make-coverage-badge": "1.2.0",
+    "md5": "2.3.0",
+    "patch-package": "8.0.1",
+    "prettier": "3.8.1",
+    "which": "6.0.1"
   }
 }
