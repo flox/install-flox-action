@@ -124,11 +124,19 @@ jobs:
 
 When Nix is already present on the runner (e.g. from [cachix/install-nix-action][cachix-nix] or [DeterminateSystems/nix-installer-action][detsys-nix]), this action installs Flox via `nix profile install` instead of downloading a platform package. The `nix-detected` output will be `true` in this case.
 
-## 🚀 Package Download Caching
+> **Note:** The `use-cache` input has no effect in this path — there is no installer package to cache when installing via an existing Nix.
 
-The downloaded flox installer package (`.deb`/`.rpm`/`.pkg`) is cached by default to speed up subsequent workflow runs. The actual package installation still runs every time -- caching only skips the download step.
+## 🚀 Caching
 
-To disable caching:
+This action involves two distinct caching layers. Understanding the difference helps set the right expectations and avoids surprises.
+
+### Installer package cache
+
+The downloaded flox installer package (`.deb`/`.rpm`/`.pkg`) is cached by default using [GitHub Actions cache][gh-actions-cache]. This skips the download on subsequent runs — **the package is still installed every time**.
+
+This only applies when Nix is _not_ pre-installed. See [Pre-installed Nix](#-pre-installed-nix) above.
+
+To disable installer caching:
 
 ```yml
 - name: Install Flox
@@ -137,19 +145,26 @@ To disable caching:
     use-cache: "false"
 ```
 
-**How cache keys work:**
-- **Pinned version** (e.g., `version: "1.3.2"`): The cache key is immutable and lives until evicted by GitHub's LRU policy.
-- **Unpinned/floating version** (default): The cache key includes today's date, so a fresh download happens once per day and is cached within that day.
+**Cache key format:** `install-flox/{channel}/{version}/{os}-{arch}-{ext}[/{date}]`
+
+| Scenario | Key example | Behavior |
+|----------|-------------|----------|
+| Pinned version | `install-flox/stable/1.3.2/linux-x64-deb` | Immutable — cached once, reused until evicted |
+| Floating version (default) | `install-flox/stable/latest/linux-x64-deb/2025-04-15` | Refreshed daily — one download per day per branch |
+
+The cached file is stored in `$RUNNER_TEMP/flox-package-cache`. If you see unexpected cache misses, check the GHA logs for the `Attempting to restore cache with key:` line to confirm the key being used.
 
 > **Note:** GitHub Actions caches are scoped to the branch, with fallback to the default branch. The repository-level cache limit is 10 GB with LRU eviction.
 
-## 🔄 Binary Caching
+### Nix binary cache (package installation)
 
-Most packages from Nixpkgs are available via the [Flox Catalog][flox-catalog]. These are pre-built and downloaded from the Flox binary cache, except for packages that cannot be redistributed in binary format.
+When you run `flox install` or `flox activate` in your workflow, Flox downloads pre-built packages from the [Flox Catalog][flox-catalog]. This is a separate cache layer from the installer cache above — it is always active and requires no configuration.
 
-For custom packages, use `flox build` and `flox publish` to get binary caching out of the box with a [FloxHub][floxhub] account.
+Packages that cannot be redistributed in binary form are built from source.
 
-> **Note:** If you're familiar with Nix and prefer managing your own infrastructure, see [flox/configure-nix-action][configure-nix-action] for setting up a custom binary cache. This is significantly more complex and not recommended for most users.
+For custom packages, use `flox build` and `flox publish` to publish your own binaries to [FloxHub][floxhub].
+
+> **Note:** If you're familiar with Nix and prefer managing your own binary cache infrastructure, see [flox/configure-nix-action][configure-nix-action]. This is significantly more complex and not recommended for most users.
 
 ## 📫 Questions?
 
@@ -180,3 +195,4 @@ MIT licensed. See [LICENSE](./LICENSE).
 [floxhub]: https://hub.flox.dev
 [cachix-nix]: https://github.com/cachix/install-nix-action
 [detsys-nix]: https://github.com/DeterminateSystems/nix-installer-action
+[gh-actions-cache]: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows
