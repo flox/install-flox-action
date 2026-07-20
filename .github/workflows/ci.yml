@@ -171,12 +171,12 @@ jobs:
 
       - name: "Install Nix (DeterminateSystems)"
         if: matrix.nix-installer == 'determinate-systems'
-        uses: DeterminateSystems/nix-installer-action@a7ad9c4f0c65208097f4d34f3cfa1913b80cce5c # main
+        uses: DeterminateSystems/nix-installer-action@33c9ab3ef95cd57c164d9d6eb1f9a46338538d41 # main
 
 
       - name: "Install Nix (Cachix)"
         if: matrix.nix-installer == 'cachix'
-        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
 
 
       - name: "Install Flox (using existing Nix)"
