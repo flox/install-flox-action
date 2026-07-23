@@ -128,8 +128,7 @@ When Nix is already present on the runner (e.g. from [cachix/install-nix-action]
 
 ## 🚀 Caching
 
-This action involves two distinct caching layers. Understanding the difference helps set the right expectations and avoids surprises.
-
+This action involves two distinct caching layers.
 ### Installer package cache
 
 The downloaded flox installer package (`.deb`/`.rpm`/`.pkg`) is cached by default using [GitHub Actions cache][gh-actions-cache]. This skips the download on subsequent runs — **the package is still installed every time**.
