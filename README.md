@@ -84,13 +84,14 @@ jobs:
 | `use-cache` | Cache the downloaded flox package to speed up subsequent runs | `"true"` |
 | `github-token` | GitHub token for Nix flake rate limiting | `${{ github.token }}` |
 | `trusted-environments` | Comma-separated FloxHub envs to trust (e.g. `owner/env1,owner/env2`) | `""` |
-| `extra-nix-config` | Additional lines to append to `/etc/nix/nix.conf` | `""` |
+| `extra-nix-config` | Additional Nix settings, one per line, written to the file this action owns | `""` |
 | `extra-substituters` | Space-separated Nix binary cache URLs | `""` |
 | `extra-substituter-keys` | Space-separated public keys for extra substituters | `""` |
 | `proxy` | HTTP/HTTPS/SOCKS5 proxy URL for network requests | `""` |
 | `disable-upgrade-notifications` | Suppress flox upgrade notifications in CI output | `"true"` |
 | `write-summary` | Write a Flox installation summary to the job summary page | `"false"` |
 | `extra-flox-config` | Key=value pairs for `flox config --set`, one per line | `""` |
+| `force-reinstall` | Reinstall flox even when it is already present on the runner | `"false"` |
 
 ## 📤 Outputs
 
@@ -98,7 +99,8 @@ jobs:
 |--------|-------------|
 | `flox-version` | The installed flox version string |
 | `flox-path` | Absolute path to the flox binary |
-| `nix-detected` | Whether Nix was pre-installed (`true`/`false`) |
+| `nix-detected` | Whether a Nix binary was found on `PATH` (`true`/`false`) |
+| `flox-preinstalled` | Whether flox was already present and installation was skipped (`true`/`false`) |
 
 ### Example with custom inputs
 
@@ -125,6 +127,26 @@ jobs:
 When Nix is already present on the runner (e.g. from [cachix/install-nix-action][cachix-nix] or [DeterminateSystems/nix-installer-action][detsys-nix]), this action installs Flox via `nix profile install` instead of downloading a platform package. The `nix-detected` output will be `true` in this case.
 
 > **Note:** The `use-cache` input has no effect in this path — there is no installer package to cache when installing via an existing Nix.
+
+## 🖥️ Self-hosted and other persistent runners
+
+GitHub-hosted runners start every job on a fresh machine. Self-hosted runners, and larger runners with a persistent disk, do not: whatever the previous job installed is still there when the next one starts. This action accounts for that in two ways.
+
+**The runner needs `sudo` and `xz` present first.** Both are pre-dependencies of the flox `deb` and `rpm`, and `sudo` is needed regardless of how flox is installed, since this action uses it to write the Nix configuration. GitHub's hosted images carry both; a minimal self-hosted machine may not, in which case installation fails on the missing dependency and retries until it gives up. Install them as part of provisioning the runner.
+
+**It looks for flox before it looks for Nix.** The flox packages ship their own Nix and symlink it into `/usr/bin`, so a runner that has already installed flox has a `nix` on `PATH` that this action put there. Checking for `flox` first tells the two situations apart. When flox is already present the installation is skipped, `flox-preinstalled` is set to `true`, and the run costs nothing beyond the configuration steps. Set `force-reinstall: true` to install the channel's current release on every run instead, or pin `version` to reinstall whenever the pinned version is newer than the one already installed.
+
+**Downgrading in place fails with an error.** Flox brings its own Nix, and a Nix store cannot be read by a Nix older than the one that last wrote it, so installing an older flox over a newer one leaves a machine that breaks at first use rather than at install time. No package manager refuses the swap on those grounds, so the action checks before installing and stops. To move a runner back to an older version, remove flox and `/nix` from it and install again. A reference with no version ordering, a commit-hash channel for instance, cannot be checked this way; those are allowed through with a warning.
+
+**It writes its Nix configuration fresh for every job.** The action writes its settings to a file under `/etc/nix/` named for the job that owns them, `install-flox-action-<run>-<attempt>-<id>.conf`, and adds one matching `!include` line to `/etc/nix/nix.conf`. A new file each job means the recorded `github-token` is never the expired one from a previous job, and it means a machine running several jobs at once gives each its own file: a shared one would let the first job to finish delete a token another job is still using. The post step removes this job's file and, with it, any include line whose file is gone, so a job killed before its post step ran does not leave litter behind. A stale token is worse than no token: Nix falls back to anonymous, rate-limited access when none is configured, but fails outright with `HTTP error 401` when it finds one that has expired.
+
+An `access-tokens` line already present in `nix.conf` is treated as yours and left alone; the action will not write its own token over it, and says so in the log when it defers. If that line is a leftover workaround rather than a token you manage, remove it: an expired token there is worse than none, because Nix fails with `HTTP error 401` instead of falling back to anonymous access.
+
+> **Note:** The token GitHub grants a job is written to a root-owned but world-readable file, because Nix has to be able to read it. A post-job step removes that file when the job ends. On a persistent runner, any job running in between can read it, so prefer a token scoped no wider than the job needs.
+
+Versions before this one appended their settings directly into `nix.conf` beneath an `# Added by install-flox-action` comment. On the first run of a newer version that comment goes, along with the `access-tokens`, `extra-trusted-substituters`, and `extra-trusted-public-keys` lines below it, since those are the ones that go stale. Anything else in the old block came from your `extra-nix-config` and is left where it is.
+
+Reinstalling installs the platform package, so on a runner that has both flox and an unrelated Nix, `force-reinstall` and a mismatched `version` pin both run the package installer rather than `nix profile install`. If that is not what you want on such a machine, leave both unset and the run will skip installation entirely.
 
 ## 🚀 Caching
 
