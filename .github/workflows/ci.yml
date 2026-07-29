@@ -200,6 +200,100 @@ jobs:
             exit 1
           fi
 
+  test-repeat-run:
+    name: "Test repeated runs on one machine"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - "ubuntu-latest"
+          - "ubuntu-slim"
+          - "macos-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+
+
+      - name: "Install Flox (first run)"
+        uses: "./"
+        with:
+          disable-metrics: "true"
+
+      # Hosted runners start each job on a fresh VM, so reaching the state a
+      # self-hosted runner is in after one job means recreating it by hand: the
+      # token this action recorded has expired, and a runner that has been
+      # through an older version also carries a block written into nix.conf.
+      - name: "Age the recorded configuration"
+        run: |
+          sudo sed -i.bak \
+            's|^access-tokens = .*|access-tokens = github.com=ghs_expired000000000000000000000000000|' \
+            "$(sudo ls /etc/nix/install-flox-action-*.conf)"
+          printf '\n# Added by install-flox-action\naccess-tokens = github.com=ghs_legacy00000000000000000000000000\n' \
+            | sudo tee -a /etc/nix/nix.conf >/dev/null
+
+      - name: "Install Flox (second run)"
+        id: second
+        uses: "./"
+        with:
+          disable-metrics: "true"
+
+      # Each invocation writes its own file, and nix.conf reads the last
+      # include last, so the winning file is the one the second run wrote.
+      - name: "Verify the token in the winning file was refreshed"
+        env:
+          EXPECTED: "access-tokens = github.com=${{ github.token }}"
+        run: |
+          winner="$(sudo grep -oE '^!include install-flox-action-\S+\.conf' /etc/nix/nix.conf \
+            | tail -1 | awk '{print $2}')"
+          echo "winning file: $winner"
+          sudo grep -qF "$EXPECTED" "/etc/nix/$winner"
+          ! sudo grep -q 'ghs_expired' "/etc/nix/$winner"
+
+      - name: "Verify the legacy block was removed"
+        run: |
+          ! sudo grep -q 'ghs_legacy' /etc/nix/nix.conf
+          ! sudo grep -q '# Added by install-flox-action' /etc/nix/nix.conf
+
+      - name: "Verify every include line points at a file that exists"
+        run: |
+          sudo grep -oE '^!include install-flox-action-\S+\.conf' /etc/nix/nix.conf \
+            | awk '{print $2}' | while read -r name; do
+              sudo test -f "/etc/nix/$name" \
+                || { echo "dangling include: $name"; exit 1; }
+            done
+
+      - name: "Verify no include line is duplicated"
+        run: |
+          dupes="$(sudo grep -oE '^!include install-flox-action-\S+\.conf' /etc/nix/nix.conf \
+            | sort | uniq -d)"
+          if [[ -n "$dupes" ]]; then
+            echo "duplicated include lines:"; echo "$dupes"
+            sudo cat /etc/nix/nix.conf
+            exit 1
+          fi
+
+      - name: "Verify the second run skipped installation"
+        run: |
+          if [[ "${{ steps.second.outputs.flox-preinstalled }}" != "true" ]]; then
+            echo "Expected flox-preinstalled to be 'true'"
+            exit 1
+          fi
+
+      - name: "Test: flox"
+        run: |
+          flox --version
+          cd $(mktemp -d)
+          flox init
+          flox install hello
+          flox activate -- hello
+
+      - name: "Test: nix can still read its configuration"
+        run: nix --extra-experimental-features nix-command config show >/dev/null
+
   test-act:
     name: "Test with nektos/act"
     runs-on: "ubuntu-latest"
@@ -242,6 +336,7 @@ jobs:
       - "test-action"
       - "test-new-inputs"
       - "test-existing-nix"
+      - "test-repeat-run"
       - "test-act"
 
     steps:
