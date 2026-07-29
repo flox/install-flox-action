@@ -53,5 +53,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7
 
         with:
-          file_pattern: "dist/index.js badges/coverage.svg"
+          file_pattern: "dist/ badges/coverage.svg"
           commit_message: "chore(deps): Update dist/"

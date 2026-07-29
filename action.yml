@@ -9,7 +9,11 @@ branding:
 inputs:
 
   version:
-    description: "Select a specific version from a channel."
+    description: >-
+      Select a specific version from a channel. Installing a
+      version older than the one already on the runner fails:
+      flox brings its own Nix, which cannot read a store
+      written by a newer one.
     default: ""
 
   channel:
@@ -47,7 +51,9 @@ inputs:
 
   extra-nix-config:
     description: >-
-      Additional lines to append to /etc/nix/nix.conf.
+      Additional Nix settings, one per line. Written to a
+      per-job file under /etc/nix/ that nix.conf includes
+      and the job's post step removes.
     default: ""
 
   extra-substituters:
@@ -90,14 +96,28 @@ inputs:
     description: "Cache the downloaded flox package to speed up subsequent runs"
     default: "true"
 
+  force-reinstall:
+    description: >-
+      Reinstall flox even when it is already present on the
+      runner. Only affects runners whose disk survives the
+      job, where flox may remain from an earlier run.
+      Installs the platform package, so on a runner that also
+      has an unrelated Nix, prefer leaving this unset.
+    default: "false"
+
 outputs:
   flox-version:
     description: "The installed flox version"
   flox-path:
     description: "Absolute path to the flox binary"
   nix-detected:
-    description: "Whether Nix was pre-installed (true/false)"
+    description: "Whether a Nix binary was found on PATH (true/false)"
+  flox-preinstalled:
+    description: >-
+      Whether flox was already present and installation was
+      skipped (true/false)
 
 runs:
   using: 'node24'
   main: 'dist/index.js'
+  post: 'dist/index.js'
