@@ -1,0 +1,153 @@
+# Copy this into the SCRATCH repository as .github/workflows/self-hosted-compare.yml,
+# start a runner with verification/self-hosted-runner.sh, then dispatch this
+# workflow.
+#
+# What it is for: any question of the form "does this action behave differently
+# on a machine that already ran it?" A GitHub-hosted runner cannot answer that,
+# because every job there starts on a fresh VM. This runs two refs of the action
+# twice each, in sequence, on one machine whose filesystem persists, and prints
+# the machine's state before and after every run.
+#
+# It asserts almost nothing on purpose. What counts as correct depends on what
+# is being investigated, so this gathers evidence and leaves the reading to you;
+# add assertions to a copy when you know what you are looking for. The only
+# built-in check is that flox works afterwards, which every ref should pass.
+#
+# The four jobs are chained with `needs` so they land on the runner in order and
+# each gets its own job token. That matters whenever the thing under
+# investigation involves credentials, since a token recorded by one job is dead
+# by the next.
+#
+# `ref-b` may legitimately fail. Both second runs are marked
+# continue-on-error so a failure is reported rather than halting the chain.
+#
+# Note on `uses`: GitHub does not allow expressions there, so the action cannot
+# be written as `flox/install-flox-action@${{ inputs.ref }}`. Each job checks the
+# action out at the wanted ref and uses it from that path.
+name: "Compare two refs on a persistent runner"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref-a:
+        description: "First ref to run twice, e.g. a released version"
+        required: true
+        default: "v2"
+      ref-b:
+        description: "Second ref to run twice, e.g. the branch under test"
+        required: true
+      action-repo:
+        description: "Repository holding the action"
+        required: true
+        default: "flox/install-flox-action"
+
+jobs:
+  a-first:
+    name: "1. ref-a, first run"
+    runs-on: ["self-hosted", "persistent-check"]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: "${{ inputs.action-repo }}"
+          ref: "${{ inputs.ref-a }}"
+          path: "action"
+      - name: "State before"
+        run: |
+          echo "flox: $(command -v flox || echo absent)"
+          echo "nix:  $(command -v nix  || echo absent)"
+          sudo ls -la /etc/nix/ 2>/dev/null || echo "no /etc/nix"
+          sudo cat /etc/nix/nix.conf 2>/dev/null || echo "no nix.conf"
+      - name: "Install (${{ inputs.ref-a }})"
+        id: "install"
+        continue-on-error: true
+        uses: "./action"
+        with:
+          disable-metrics: "true"
+      - name: "State after"
+        if: "always()"
+        run: |
+          echo "outcome: ${{ steps.install.outcome }}"
+          echo "flox-preinstalled: ${{ steps.install.outputs.flox-preinstalled }}"
+          sudo ls -la /etc/nix/ 2>/dev/null
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+          flox --version 2>/dev/null || echo "flox not usable"
+
+  a-second:
+    name: "2. ref-a, second run on the same machine"
+    needs: "a-first"
+    runs-on: ["self-hosted", "persistent-check"]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: "${{ inputs.action-repo }}"
+          ref: "${{ inputs.ref-a }}"
+          path: "action"
+      - name: "State before"
+        run: |
+          sudo ls -la /etc/nix/ 2>/dev/null
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+      - name: "Install (${{ inputs.ref-a }}) again"
+        id: "install"
+        continue-on-error: true
+        uses: "./action"
+        with:
+          disable-metrics: "true"
+      - name: "State after"
+        if: "always()"
+        run: |
+          echo "outcome: ${{ steps.install.outcome }}"
+          echo "flox-preinstalled: ${{ steps.install.outputs.flox-preinstalled }}"
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+          flox --version 2>/dev/null || echo "flox not usable"
+
+  b-first:
+    name: "3. ref-b, against whatever ref-a left behind"
+    needs: "a-second"
+    runs-on: ["self-hosted", "persistent-check"]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: "${{ inputs.action-repo }}"
+          ref: "${{ inputs.ref-b }}"
+          path: "action"
+      - name: "State before"
+        run: |
+          sudo ls -la /etc/nix/ 2>/dev/null
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+      - name: "Install (${{ inputs.ref-b }})"
+        id: "install"
+        uses: "./action"
+        with:
+          disable-metrics: "true"
+      - name: "State after, and flox must work"
+        run: |
+          echo "flox-preinstalled: ${{ steps.install.outputs.flox-preinstalled }}"
+          sudo ls -la /etc/nix/ 2>/dev/null
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+          flox --version
+          cd "$(mktemp -d)" && flox init && flox install hello && flox activate -- hello
+
+  b-second:
+    name: "4. ref-b, second run on the same machine"
+    needs: "b-first"
+    runs-on: ["self-hosted", "persistent-check"]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: "${{ inputs.action-repo }}"
+          ref: "${{ inputs.ref-b }}"
+          path: "action"
+      - name: "State before, including anything a post step removed"
+        run: |
+          sudo ls -la /etc/nix/ 2>/dev/null
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+      - name: "Install (${{ inputs.ref-b }}) again"
+        id: "install"
+        uses: "./action"
+        with:
+          disable-metrics: "true"
+      - name: "State after, and flox must work"
+        run: |
+          echo "flox-preinstalled: ${{ steps.install.outputs.flox-preinstalled }}"
+          sudo cat /etc/nix/nix.conf 2>/dev/null
+          flox --version
