@@ -56,7 +56,12 @@ RETRY_DELAY=5
 install_package() {
   case $DOWNLOADED_FILE in
     *.rpm)
-      $SUDO rpm -i --notriggers "$DOWNLOADED_FILE"
+      # A runner that keeps its disk may already have flox, and rpm treats a
+      # reinstall at the same version as an error under both -i and -U, which
+      # --replacepkgs permits. --oldpackage is deliberately absent: downgrading
+      # flox in place is not supported, so rpm refusing it is a second line of
+      # defense behind the check in the action itself.
+      $SUDO rpm -U --replacepkgs --notriggers "$DOWNLOADED_FILE"
       ;;
     *.deb)
       $SUDO dpkg -i --no-triggers "$DOWNLOADED_FILE"

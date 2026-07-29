@@ -1,31 +1,33 @@
-const main = require('./main')
-//const post = require('./post')
-
+jest.mock('@actions/core')
 jest.mock('./main', () => ({
   run: jest.fn()
 }))
-//jest.mock('./post', () => ({
-//  run: jest.fn()
-//}))
+jest.mock('./cleanup', () => ({
+  run: jest.fn()
+}))
 
 describe('index', () => {
-  afterEach(() => {
+  beforeEach(() => {
+    jest.resetModules()
     delete process.env['STATE_isPost']
-    jest.restoreAllMocks()
   })
+
   it('calls main.run when imported', async () => {
     require('./index')
 
-    expect(main.run).toHaveBeenCalled()
-    //expect(post.run).not.toHaveBeenCalled()
+    expect(require('./main').run).toHaveBeenCalled()
+    // Without this the post step would find no state and run main again.
+    expect(require('@actions/core').saveState).toHaveBeenCalledWith(
+      'isPost',
+      'true'
+    )
   })
 
-  //it('calls post.run when imported', async () => {
-  //  process.env['STATE_isPost'] = 'true'
+  it('calls cleanup.run in the post step', async () => {
+    process.env['STATE_isPost'] = 'true'
 
-  //  require('./index')
+    require('./index')
 
-  //  expect(main.run).not.toHaveBeenCalled()
-  //  expect(post.run).toHaveBeenCalled()
-  //})
+    expect(require('./cleanup').run).toHaveBeenCalled()
+  })
 })

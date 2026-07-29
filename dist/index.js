@@ -73414,6 +73414,53 @@ module.exports = {
 
 /***/ }),
 
+/***/ 55541:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(37484)
+const fs = __nccwpck_require__(79896)
+const nixconf = __nccwpck_require__(62580)
+
+// The token GitHub grants a job is written to a root-owned but world-readable
+// file so that Nix can read it. On a runner whose disk survives the job,
+// anything that runs next can read it too, until it expires.
+//
+// Only this job's own file is removed. A machine may be running other jobs
+// whose files are live, and taking one of those would strand a job mid-run.
+async function run() {
+  try {
+    const confName = core.getState('confName')
+    const existingConf = nixconf.readConf(nixconf.NIX_CONF_PATH)
+    nixconf.maskTokensIn(existingConf)
+
+    if (confName === '' && !nixconf.INCLUDE_PATTERN.test(existingConf)) return
+
+    if (confName !== '' && fs.existsSync(nixconf.confPath(confName))) {
+      await nixconf.removeAsRoot(nixconf.confPath(confName))
+    }
+
+    // Drops this job's include line, and any left by a job that died before its
+    // post step ran. Lines whose file still exists belong to a live job.
+    const prunedConf = nixconf.pruneIncludes(existingConf, confName)
+    if (prunedConf !== existingConf) {
+      await nixconf.writeAsRoot(nixconf.NIX_CONF_PATH, nixconf.tidy(prunedConf))
+    }
+
+    core.info(
+      confName === ''
+        ? 'Pruned stale include lines from nix.conf'
+        : `Removed ${nixconf.confPath(confName)}`
+    )
+  } catch (error) {
+    core.warning(`Could not remove Nix configuration: ${error.message}`)
+  }
+}
+
+module.exports = { run }
+
+
+/***/ }),
+
 /***/ 87936:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
@@ -73423,11 +73470,16 @@ __nccwpck_require__.r(__webpack_exports__);
 /* harmony export */   captureOutputs: () => (/* binding */ captureOutputs),
 /* harmony export */   configureFlox: () => (/* binding */ configureFlox),
 /* harmony export */   configureNixExtra: () => (/* binding */ configureNixExtra),
-/* harmony export */   configureNixSubstituter: () => (/* binding */ configureNixSubstituter),
 /* harmony export */   getDownloadUrl: () => (/* binding */ getDownloadUrl),
+/* harmony export */   getInstalledVersion: () => (/* binding */ getInstalledVersion),
 /* harmony export */   installViaExistingNix: () => (/* binding */ installViaExistingNix),
+/* harmony export */   installViaPackage: () => (/* binding */ installViaPackage),
+/* harmony export */   isDowngrade: () => (/* binding */ isDowngrade),
+/* harmony export */   isOrderable: () => (/* binding */ isOrderable),
+/* harmony export */   normalizeVersion: () => (/* binding */ normalizeVersion),
 /* harmony export */   run: () => (/* binding */ run),
 /* harmony export */   scriptPath: () => (/* binding */ scriptPath),
+/* harmony export */   versionSatisfies: () => (/* binding */ versionSatisfies),
 /* harmony export */   writeJobSummary: () => (/* binding */ writeJobSummary)
 /* harmony export */ });
 const core = __nccwpck_require__(37484)
@@ -73436,6 +73488,7 @@ const fs = __nccwpck_require__(79896)
 const path = __nccwpck_require__(16928)
 const which = __nccwpck_require__(11189)
 const { restorePackage, savePackage, getCachePath } = __nccwpck_require__(42351)
+const nixconf = __nccwpck_require__(62580)
 
 function scriptPath(name) {
   return path.join(__dirname, '..', 'scripts', name)
@@ -73519,39 +73572,6 @@ async function getDownloadUrl() {
   return downloadUrl
 }
 
-async function configureNixSubstituter() {
-  const nixConfPath = '/etc/nix/nix.conf'
-  const nixConfDir = '/etc/nix'
-
-  // Ensure /etc/nix directory exists
-  if (!fs.existsSync(nixConfDir)) {
-    await exec.exec('sudo', ['mkdir', '-p', nixConfDir])
-  }
-
-  // Read existing config or start fresh
-  let nixConf = ''
-  if (fs.existsSync(nixConfPath)) {
-    nixConf = fs.readFileSync(nixConfPath, 'utf8')
-  }
-
-  // Add Flox substituter if not already present
-  if (!nixConf.includes(FLOX_SUBSTITUTER)) {
-    const additions = `
-# Added by install-flox-action
-extra-trusted-substituters = ${FLOX_SUBSTITUTER}
-extra-trusted-public-keys = ${FLOX_PUBLIC_KEY}
-`
-    await exec.exec('sudo', [
-      'bash',
-      '-c',
-      `echo '${additions}' >> ${nixConfPath}`
-    ])
-    core.info(`Configured Flox substituter in ${nixConfPath}`)
-  } else {
-    core.info('Flox substituter already configured')
-  }
-}
-
 async function installViaExistingNix() {
   core.info('Nix detected - installing Flox via nix profile install')
 
@@ -73575,51 +73595,93 @@ async function installViaExistingNix() {
 }
 
 async function configureNixExtra() {
-  const nixConfPath = '/etc/nix/nix.conf'
-  const nixConfDir = '/etc/nix'
   const extraNixConfig = core.getInput('extra-nix-config')
   const extraSubstituters = core.getInput('extra-substituters')
   const extraKeys = core.getInput('extra-substituter-keys')
   const githubToken = core.getInput('github-token')
 
-  const hasWork =
-    extraNixConfig !== '' || extraSubstituters !== '' || githubToken !== ''
-
-  if (!hasWork) return
-
-  if (!fs.existsSync(nixConfDir)) {
-    await exec.exec('sudo', ['mkdir', '-p', nixConfDir])
+  if (githubToken !== '') {
+    core.setSecret(githubToken)
   }
 
-  let existingConf = ''
-  if (fs.existsSync(nixConfPath)) {
-    existingConf = fs.readFileSync(nixConfPath, 'utf8')
+  const existingConf = nixconf.readConf(nixconf.NIX_CONF_PATH)
+  nixconf.maskTokensIn(existingConf)
+  const cleanedConf = nixconf.stripLegacyBlocks(existingConf)
+
+  // Happens once per machine, when a runner that has been through an older
+  // version first meets this one. Worth a line in the log, because it is the
+  // moment a stale token stops being served.
+  const migrated = cleanedConf !== existingConf
+  if (migrated) {
+    core.info(
+      `Removed settings written into ${nixconf.NIX_CONF_PATH} by an earlier version of this action`
+    )
   }
 
-  let additions = '\n# Added by install-flox-action\n'
+  // A token the user placed in nix.conf themselves is theirs to manage. One
+  // this action left there on an earlier run is not, and it expired when that
+  // job ended, so it must not be mistaken for the user's.
+  const userSuppliedToken = /^\s*access-tokens\s*=/m.test(cleanedConf)
 
+  const settings = []
   if (extraNixConfig !== '') {
-    additions += extraNixConfig + '\n'
+    settings.push(extraNixConfig)
   }
-
   if (extraSubstituters !== '') {
-    additions += `extra-trusted-substituters = ${extraSubstituters}\n`
+    settings.push(`extra-trusted-substituters = ${extraSubstituters}`)
     if (extraKeys !== '') {
-      additions += `extra-trusted-public-keys = ${extraKeys}\n`
+      settings.push(`extra-trusted-public-keys = ${extraKeys}`)
     }
   }
-
-  if (githubToken !== '' && !existingConf.includes('access-tokens')) {
-    core.setSecret(githubToken)
-    additions += `access-tokens = github.com=${githubToken}\n`
+  if (githubToken !== '' && !userSuppliedToken) {
+    settings.push(`access-tokens = github.com=${githubToken}`)
+  } else if (githubToken !== '') {
+    core.info(
+      `Found an existing access-tokens line in ${nixconf.NIX_CONF_PATH}; ` +
+        "leaving it in place and not writing this job's token. If it is a " +
+        'stale workaround rather than a token you manage, remove it: an ' +
+        'expired token there causes HTTP 401 where no token would not.'
+    )
   }
 
-  await exec.exec('sudo', [
-    'bash',
-    '-c',
-    `cat >> ${nixConfPath} << 'NIXCONF'\n${additions}NIXCONF`
-  ])
-  core.info('Nix configuration updated')
+  await nixconf.ensureConfDir()
+
+  if (settings.length === 0) {
+    // A legacy block still has to go when there is nothing to write in its
+    // place. Someone who worked around the expired token by adding their own
+    // access-tokens line reaches exactly this case, and leaving the block
+    // would keep the expired token below theirs, where Nix still reads it.
+    if (migrated) {
+      await nixconf.writeAsRoot(
+        nixconf.NIX_CONF_PATH,
+        nixconf.tidy(cleanedConf)
+      )
+    }
+    return
+  }
+
+  // The file is named for this job and its name handed to the post step, so a
+  // machine running several jobs at once has one file per job rather than one
+  // shared file whose deletion would strand whichever job is still running.
+  const confName = nixconf.newConfName()
+  core.saveState('confName', confName)
+
+  await nixconf.writeAsRoot(
+    nixconf.confPath(confName),
+    [
+      `# Managed by flox/install-flox-action for this job. Removed when it ends.`,
+      ...settings
+    ].join('\n')
+  )
+
+  // Prune include lines left by jobs that died before their post step ran; a
+  // running job's file still exists, so its line survives. Appending this job's
+  // line last means its settings win over any that remain.
+  const prunedConf = nixconf.pruneIncludes(cleanedConf, null)
+  const updatedConf = `${nixconf.tidy(prunedConf)}${nixconf.includeLine(confName)}`
+  await nixconf.writeAsRoot(nixconf.NIX_CONF_PATH, nixconf.tidy(updatedConf))
+
+  core.info(`Nix configuration written to ${nixconf.confPath(confName)}`)
 }
 
 async function configureFlox() {
@@ -73667,22 +73729,62 @@ async function configureFlox() {
   }
 }
 
-async function captureOutputs(nixDetected) {
-  let floxVersion = ''
+async function getInstalledVersion() {
+  let output = ''
   await exec.exec('flox', ['--version'], {
     listeners: {
       stdout: data => {
-        floxVersion += data.toString()
+        output += data.toString()
       }
     }
   })
-  floxVersion = floxVersion.trim()
+  return output.trim()
+}
+
+// `flox --version` reports a bare "1.14.0"; older releases prefixed it with
+// the program name, so both forms are accepted.
+function normalizeVersion(reported) {
+  return reported.replace(/^flox\s+/i, '').trim()
+}
+
+function versionSatisfies(requested, installed) {
+  if (requested === '') return true
+  return normalizeVersion(installed) === requested
+}
+
+function parseVersion(v) {
+  const parts = normalizeVersion(v).split('.')
+  if (parts.length !== 3 || parts.some(p => !/^\d+$/.test(p))) return null
+  return parts.map(Number)
+}
+
+// Whether the two can be compared at all. A `nightly` channel or a commit-hash
+// pin has no ordering, so neither a refusal nor an all-clear can be justified.
+function isOrderable(requested, installed) {
+  return parseVersion(requested) !== null && parseVersion(installed) !== null
+}
+
+// True only when both sides are plain dotted versions and the requested one is
+// lower, so an unorderable reference never reads as a downgrade.
+function isDowngrade(requested, installed) {
+  const to = parseVersion(requested)
+  const from = parseVersion(installed)
+  if (to === null || from === null) return false
+  for (let i = 0; i < 3; i++) {
+    if (to[i] !== from[i]) return to[i] < from[i]
+  }
+  return false
+}
+
+async function captureOutputs(nixDetected, floxPreinstalled) {
+  const floxVersion = await getInstalledVersion()
   core.setOutput('flox-version', floxVersion)
 
   const floxPath = await which('flox', { nothrow: true })
   core.setOutput('flox-path', floxPath || '')
 
   core.setOutput('nix-detected', nixDetected ? 'true' : 'false')
+  core.setOutput('flox-preinstalled', floxPreinstalled ? 'true' : 'false')
 
   core.info(`Flox version: ${floxVersion}`)
   core.info(`Flox path: ${floxPath}`)
@@ -73704,9 +73806,35 @@ async function writeJobSummary({
       ['Channel', channel],
       ['Method', method],
       ['Platform', `${platform} (${arch})`],
-      ['Nix pre-installed', nixDetected ? 'Yes' : 'No']
+      ['Nix on PATH', nixDetected ? 'Yes' : 'No']
     ])
     .write()
+}
+
+async function installViaPackage() {
+  const downloadUrl = await getDownloadUrl()
+  const useCache = core.getInput('use-cache') === 'true'
+
+  let cacheHit = false
+
+  if (useCache) {
+    const cachedPath = await restorePackage(downloadUrl)
+    if (cachedPath) {
+      cacheHit = true
+      core.exportVariable('DOWNLOADED_FILE', cachedPath)
+      core.exportVariable('SKIP_DOWNLOAD', 'true')
+      core.exportVariable('PRESERVE_DOWNLOAD', 'true')
+    } else {
+      core.exportVariable('DOWNLOADED_FILE', getCachePath(downloadUrl))
+      core.exportVariable('PRESERVE_DOWNLOAD', 'true')
+    }
+  }
+
+  await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
+
+  if (useCache && !cacheHit) {
+    await savePackage(downloadUrl)
+  }
 }
 
 async function run() {
@@ -73717,55 +73845,102 @@ async function run() {
     }
 
     core.startGroup('Download & Install flox')
+
+    // The flox packages symlink their own Nix into /usr/bin, so on a runner
+    // whose disk survives the job, `nix` alone cannot tell a Nix the user
+    // brought from the one an earlier run of this action installed. Asking
+    // for flox first answers the question directly.
+    const floxPath = await which('flox', { nothrow: true })
     const nix = await which('nix', { nothrow: true })
     const nixDetected = nix !== null
 
-    if (!nixDetected) {
-      const downloadUrl = await getDownloadUrl()
-      const useCache = core.getInput('use-cache') === 'true'
+    const requestedVersion = core.getInput('version')
 
-      let cacheHit = false
-      let cachedPath = null
+    let floxPreinstalled = false
+    let installedVersion = ''
+    if (floxPath !== null) {
+      installedVersion = await getInstalledVersion()
 
-      if (useCache) {
-        cachedPath = await restorePackage(downloadUrl)
-        if (cachedPath) {
-          cacheHit = true
-          core.exportVariable('DOWNLOADED_FILE', cachedPath)
-          core.exportVariable('SKIP_DOWNLOAD', 'true')
-          core.exportVariable('PRESERVE_DOWNLOAD', 'true')
-        } else {
-          const cachePath = getCachePath(downloadUrl)
-          core.exportVariable('DOWNLOADED_FILE', cachePath)
-          core.exportVariable('PRESERVE_DOWNLOAD', 'true')
-        }
+      // Flox brings its own Nix, and a Nix store database migrates only
+      // forward: a Nix older than the one that last wrote the store can refuse
+      // to operate against it. No package manager declines the swap on those
+      // grounds, so the install would succeed and the machine would break
+      // later, at first use, with nothing tying the breakage to the pin. Refuse
+      // before installing rather than leave state that does not heal.
+      if (isDowngrade(requestedVersion, installedVersion)) {
+        throw new Error(
+          `flox ${normalizeVersion(installedVersion)} is installed; ` +
+            `downgrading to ${requestedVersion} in place is not supported. ` +
+            'Update the pin, or remove flox and /nix from the runner to ' +
+            'install an older version.'
+        )
       }
 
-      await exec.exec('bash', ['-c', INSTALL_FLOX_SCRIPT])
-
-      if (useCache && !cacheHit) {
-        await savePackage(downloadUrl)
+      if (core.getInput('force-reinstall') !== 'true') {
+        floxPreinstalled = versionSatisfies(requestedVersion, installedVersion)
       }
-    } else {
+
+      // A channel that is a commit hash, or a version that is not a plain
+      // dotted triple, carries no ordering, so whether it goes backwards cannot
+      // be known. Those are allowed through rather than blocked on a guess.
+      if (
+        !floxPreinstalled &&
+        !isOrderable(requestedVersion, installedVersion)
+      ) {
+        core.warning(
+          'Reinstalling flox over an existing installation from a reference ' +
+            'with no version ordering, so this may be a downgrade. Downgrading ' +
+            'in place is not supported: flox brings its own Nix, and a Nix ' +
+            'store cannot be read by a Nix older than the one that last wrote ' +
+            'it. If anything fails against /nix afterwards, remove flox and ' +
+            '/nix from the runner and install again.'
+        )
+      }
+    }
+
+    const usesExistingNix =
+      !floxPreinstalled && nixDetected && floxPath === null
+
+    // Nix reads access-tokens from disk when it fetches a flake, so on that
+    // path the configuration has to be written first. On the package path it
+    // has to come second: flox's postinst writes /etc/nix/nix.conf only when
+    // it finds none, and creating ours first would suppress the defaults it
+    // puts there, among them the empty build-users-group a single-user
+    // install depends on.
+    if (usesExistingNix) {
+      await configureNixExtra()
+    }
+
+    if (floxPreinstalled) {
+      core.info(`Flox already installed at ${floxPath}; skipping installation`)
+    } else if (usesExistingNix) {
       core.info(`Nix found at ${nix}`)
       await installViaExistingNix()
+    } else {
+      await installViaPackage()
     }
     core.endGroup()
 
     core.startGroup('Configure flox')
-    await configureNixExtra()
+    if (!usesExistingNix) {
+      await configureNixExtra()
+    }
     await configureFlox()
     core.endGroup()
 
     core.startGroup('Verify installation')
-    await captureOutputs(nixDetected)
+    await captureOutputs(nixDetected, floxPreinstalled)
     core.endGroup()
 
     if (core.getInput('write-summary') === 'true') {
+      let method = 'package'
+      if (floxPreinstalled) method = 'already installed'
+      else if (usesExistingNix) method = 'nix profile'
+
       await writeJobSummary({
         floxVersion: core.getInput('version') || '(latest)',
         channel: core.getInput('channel') || 'stable',
-        method: nixDetected ? 'nix profile' : 'package',
+        method,
         platform: process.platform,
         arch: process.arch,
         nixDetected
@@ -73774,6 +73949,171 @@ async function run() {
   } catch (error) {
     core.setFailed(error.message)
   }
+}
+
+
+/***/ }),
+
+/***/ 62580:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(37484)
+const crypto = __nccwpck_require__(76982)
+const exec = __nccwpck_require__(95236)
+const fs = __nccwpck_require__(79896)
+
+const NIX_CONF_DIR = '/etc/nix'
+const NIX_CONF_PATH = `${NIX_CONF_DIR}/nix.conf`
+
+// The file holds a token granted to one job, so it is named for that job. A
+// machine may run several runner workers at once, and a shared name would mean
+// one job's post step deleting a token another job is still using.
+const CONF_PREFIX = 'install-flox-action'
+
+// Nix fails outright when a file named by `include` is missing, and ignores one
+// named by `!include`. Files are removed at job end while include lines can
+// outlive them, so only the optional form is safe here.
+// https://nix.dev/manual/nix/latest/command-ref/conf-file
+// Multiline, because it is tested both against a single line and against a
+// whole nix.conf to ask whether any such line is present.
+const INCLUDE_PATTERN = new RegExp(
+  `^\\s*!include\\s+(${CONF_PREFIX}[A-Za-z0-9._-]*\\.conf)\\s*$`,
+  'm'
+)
+
+const LEGACY_MARKER = '# Added by install-flox-action'
+
+// Settings only this action writes. Used to tell its own leftovers from a line
+// someone put in nix.conf by hand.
+const ACTION_SETTING =
+  /^\s*(access-tokens|extra-trusted-substituters|extra-trusted-public-keys)\s*=/
+
+// Carries the run it belongs to so a leftover file can be traced, plus random
+// bytes so concurrent jobs of one run, matrix legs included, cannot collide.
+function newConfName() {
+  const parts = [
+    process.env['GITHUB_RUN_ID'],
+    process.env['GITHUB_RUN_ATTEMPT'],
+    crypto.randomBytes(4).toString('hex')
+  ].filter(Boolean)
+  return `${CONF_PREFIX}-${parts.join('-')}.conf`
+}
+
+function confPath(name) {
+  return `${NIX_CONF_DIR}/${name}`
+}
+
+function includeLine(name) {
+  return `!include ${name}`
+}
+
+// Matches the token in an access-tokens line so it can be masked.
+const TOKEN_VALUE = /^\s*access-tokens\s*=\s*\S+?=(\S+)/gm
+
+function readConf(p) {
+  return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : ''
+}
+
+// Registers every token already in a config file for masking. The action's own
+// token is masked when it is written; this covers one an administrator wrote by
+// hand, which the action would otherwise have no reason to know about.
+function maskTokensIn(conf) {
+  for (const match of conf.matchAll(TOKEN_VALUE)) {
+    if (match[1]) core.setSecret(match[1])
+  }
+}
+
+// Versions before this one appended their settings directly into nix.conf
+// beneath a marker comment, leaving a runner with a persistent disk holding an
+// expired token.
+function stripLegacyBlocks(conf) {
+  const kept = []
+  let inBlock = false
+
+  for (const line of conf.split('\n')) {
+    if (line.trim() === LEGACY_MARKER) {
+      inBlock = true
+      continue
+    }
+
+    if (inBlock) {
+      // An include directive is the one thing known to be written after a
+      // block, by flox's own postinst, so it closes it.
+      if (/^\s*!?include\s/.test(line)) {
+        inBlock = false
+      } else if (ACTION_SETTING.test(line)) {
+        // A setting this action wrote, and the only kind that can do harm on a
+        // later run. Everything else in the block came from the
+        // extra-nix-config input, so it is the user's and stays where it is.
+        continue
+      }
+    }
+
+    kept.push(line)
+  }
+
+  return kept.join('\n')
+}
+
+// Drops this action's include lines whose file is gone: either the caller's own,
+// named by `own`, or one belonging to a job that died before its post step ran.
+// A live job's file still exists, so its line is left alone.
+function pruneIncludes(conf, own) {
+  return conf
+    .split('\n')
+    .filter(line => {
+      const match = line.match(INCLUDE_PATTERN)
+      if (!match) return true
+      const name = match[1]
+      if (name === own) return false
+      return fs.existsSync(confPath(name))
+    })
+    .join('\n')
+}
+
+async function ensureConfDir() {
+  if (!fs.existsSync(NIX_CONF_DIR)) {
+    await exec.exec('sudo', ['mkdir', '-p', NIX_CONF_DIR])
+  }
+}
+
+// Removing a line and appending another leaves blanks behind, and on a machine
+// that runs thousands of jobs those would accumulate without bound, which is
+// the growth this whole design exists to avoid.
+function tidy(conf) {
+  return conf.replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '') + '\n'
+}
+
+// Content goes over stdin rather than in the command line, because @actions/exec
+// echoes the command it runs into the job log. Embedding the file there would
+// print anything already in nix.conf, including a token an administrator wrote
+// by hand that this action has no way to mask. It also removes any question of a
+// line in extra-nix-config terminating a heredoc and being run as root.
+async function writeAsRoot(p, content) {
+  await exec.exec('sudo', ['tee', p], {
+    input: Buffer.from(content),
+    silent: true
+  })
+}
+
+async function removeAsRoot(p) {
+  await exec.exec('sudo', ['rm', '-f', p])
+}
+
+module.exports = {
+  NIX_CONF_PATH,
+  INCLUDE_PATTERN,
+  newConfName,
+  confPath,
+  includeLine,
+  readConf,
+  maskTokensIn,
+  stripLegacyBlocks,
+  pruneIncludes,
+  tidy,
+  ensureConfDir,
+  writeAsRoot,
+  removeAsRoot
 }
 
 
@@ -116568,8 +116908,16 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(37484)
 
 const main = __nccwpck_require__(87936)
+const cleanup = __nccwpck_require__(55541)
 
-main.run()
+// The post step runs this same bundle, so state recorded during the main step
+// is what tells the two phases apart.
+if (process.env['STATE_isPost']) {
+  cleanup.run()
+} else {
+  core.saveState('isPost', 'true')
+  main.run()
+}
 
 module.exports = __webpack_exports__;
 /******/ })()
