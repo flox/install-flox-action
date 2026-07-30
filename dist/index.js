@@ -73462,36 +73462,17 @@ module.exports = { run }
 /***/ }),
 
 /***/ 87936:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   captureOutputs: () => (/* binding */ captureOutputs),
-/* harmony export */   configureFlox: () => (/* binding */ configureFlox),
-/* harmony export */   configureNixExtra: () => (/* binding */ configureNixExtra),
-/* harmony export */   getDownloadUrl: () => (/* binding */ getDownloadUrl),
-/* harmony export */   getInstalledVersion: () => (/* binding */ getInstalledVersion),
-/* harmony export */   installViaExistingNix: () => (/* binding */ installViaExistingNix),
-/* harmony export */   installViaPackage: () => (/* binding */ installViaPackage),
-/* harmony export */   isDowngrade: () => (/* binding */ isDowngrade),
-/* harmony export */   isOrderable: () => (/* binding */ isOrderable),
-/* harmony export */   normalizeVersion: () => (/* binding */ normalizeVersion),
-/* harmony export */   run: () => (/* binding */ run),
-/* harmony export */   scriptPath: () => (/* binding */ scriptPath),
-/* harmony export */   versionSatisfies: () => (/* binding */ versionSatisfies),
-/* harmony export */   writeJobSummary: () => (/* binding */ writeJobSummary)
-/* harmony export */ });
 const core = __nccwpck_require__(37484)
 const exec = __nccwpck_require__(95236)
-const fs = __nccwpck_require__(79896)
 const path = __nccwpck_require__(16928)
 const which = __nccwpck_require__(11189)
 const { restorePackage, savePackage, getCachePath } = __nccwpck_require__(42351)
 const nixconf = __nccwpck_require__(62580)
 
 function scriptPath(name) {
-  return path.join(__dirname, '..', 'scripts', name)
+  return __nccwpck_require__.ab + "scripts/" + name
 }
 
 const INSTALL_FLOX_SCRIPT = scriptPath('install-flox.sh')
@@ -73949,6 +73930,23 @@ async function run() {
   } catch (error) {
     core.setFailed(error.message)
   }
+}
+
+module.exports = {
+  scriptPath,
+  getDownloadUrl,
+  installViaExistingNix,
+  configureNixExtra,
+  configureFlox,
+  getInstalledVersion,
+  normalizeVersion,
+  versionSatisfies,
+  isOrderable,
+  isDowngrade,
+  captureOutputs,
+  writeJobSummary,
+  installViaPackage,
+  run
 }
 
 
@@ -116871,34 +116869,6 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"@actions/cache","version":"4.
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";

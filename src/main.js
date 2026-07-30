@@ -1,12 +1,11 @@
 const core = require('@actions/core')
 const exec = require('@actions/exec')
-const fs = require('fs')
 const path = require('path')
 const which = require('which')
 const { restorePackage, savePackage, getCachePath } = require('./cache')
 const nixconf = require('./nixconf')
 
-export function scriptPath(name) {
+function scriptPath(name) {
   return path.join(__dirname, '..', 'scripts', name)
 }
 
@@ -17,7 +16,7 @@ const FLOX_SUBSTITUTER = 'https://cache.flox.dev'
 const FLOX_PUBLIC_KEY =
   'flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs='
 
-export async function getDownloadUrl() {
+async function getDownloadUrl() {
   const rpm = await which('rpm', { nothrow: true })
   const dpkg = await which('dpkg', { nothrow: true })
 
@@ -88,7 +87,7 @@ export async function getDownloadUrl() {
   return downloadUrl
 }
 
-export async function installViaExistingNix() {
+async function installViaExistingNix() {
   core.info('Nix detected - installing Flox via nix profile install')
 
   // Install Flox using nix profile with substituter flags
@@ -110,7 +109,7 @@ export async function installViaExistingNix() {
   core.info('Flox installed successfully via existing Nix')
 }
 
-export async function configureNixExtra() {
+async function configureNixExtra() {
   const extraNixConfig = core.getInput('extra-nix-config')
   const extraSubstituters = core.getInput('extra-substituters')
   const extraKeys = core.getInput('extra-substituter-keys')
@@ -200,7 +199,7 @@ export async function configureNixExtra() {
   core.info(`Nix configuration written to ${nixconf.confPath(confName)}`)
 }
 
-export async function configureFlox() {
+async function configureFlox() {
   const trustedEnvs = core.getInput('trusted-environments')
   if (trustedEnvs !== '') {
     const envList = trustedEnvs
@@ -245,7 +244,7 @@ export async function configureFlox() {
   }
 }
 
-export async function getInstalledVersion() {
+async function getInstalledVersion() {
   let output = ''
   await exec.exec('flox', ['--version'], {
     listeners: {
@@ -259,11 +258,11 @@ export async function getInstalledVersion() {
 
 // `flox --version` reports a bare "1.14.0"; older releases prefixed it with
 // the program name, so both forms are accepted.
-export function normalizeVersion(reported) {
+function normalizeVersion(reported) {
   return reported.replace(/^flox\s+/i, '').trim()
 }
 
-export function versionSatisfies(requested, installed) {
+function versionSatisfies(requested, installed) {
   if (requested === '') return true
   return normalizeVersion(installed) === requested
 }
@@ -276,13 +275,13 @@ function parseVersion(v) {
 
 // Whether the two can be compared at all. A `nightly` channel or a commit-hash
 // pin has no ordering, so neither a refusal nor an all-clear can be justified.
-export function isOrderable(requested, installed) {
+function isOrderable(requested, installed) {
   return parseVersion(requested) !== null && parseVersion(installed) !== null
 }
 
 // True only when both sides are plain dotted versions and the requested one is
 // lower, so an unorderable reference never reads as a downgrade.
-export function isDowngrade(requested, installed) {
+function isDowngrade(requested, installed) {
   const to = parseVersion(requested)
   const from = parseVersion(installed)
   if (to === null || from === null) return false
@@ -292,7 +291,7 @@ export function isDowngrade(requested, installed) {
   return false
 }
 
-export async function captureOutputs(nixDetected, floxPreinstalled) {
+async function captureOutputs(nixDetected, floxPreinstalled) {
   const floxVersion = await getInstalledVersion()
   core.setOutput('flox-version', floxVersion)
 
@@ -306,7 +305,7 @@ export async function captureOutputs(nixDetected, floxPreinstalled) {
   core.info(`Flox path: ${floxPath}`)
 }
 
-export async function writeJobSummary({
+async function writeJobSummary({
   floxVersion,
   channel,
   method,
@@ -327,7 +326,7 @@ export async function writeJobSummary({
     .write()
 }
 
-export async function installViaPackage() {
+async function installViaPackage() {
   const downloadUrl = await getDownloadUrl()
   const useCache = core.getInput('use-cache') === 'true'
 
@@ -353,7 +352,7 @@ export async function installViaPackage() {
   }
 }
 
-export async function run() {
+async function run() {
   try {
     const disable_metrics = core.getInput('disable-metrics')
     if (disable_metrics !== '') {
@@ -465,4 +464,21 @@ export async function run() {
   } catch (error) {
     core.setFailed(error.message)
   }
+}
+
+module.exports = {
+  scriptPath,
+  getDownloadUrl,
+  installViaExistingNix,
+  configureNixExtra,
+  configureFlox,
+  getInstalledVersion,
+  normalizeVersion,
+  versionSatisfies,
+  isOrderable,
+  isDowngrade,
+  captureOutputs,
+  writeJobSummary,
+  installViaPackage,
+  run
 }

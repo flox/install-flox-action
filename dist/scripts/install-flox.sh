@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Ensure curl is available
+command -v curl >/dev/null 2>&1 || {
+  echo >&2 "Aborting: 'curl' is not installed.";
+  exit 1;
+}
+
+# Ensure INPUT_DOWNLOAD_URL is set
+if [ -z "$INPUT_DOWNLOAD_URL" ]; then
+  echo >&2 "Aborting: 'INPUT_DOWNLOAD_URL' environment variable is not set.";
+  exit 1;
+fi
+
+
+RETRIES="${RETRIES:-3}"
+
+PROXY_ARGS=""
+if [ -n "${PROXY:-}" ]; then
+  PROXY_ARGS="--proxy $PROXY"
+  echo "Using proxy: $PROXY"
+fi
+
+if [[ -n "${SKIP_DOWNLOAD:-}" ]] && [[ -f "${DOWNLOADED_FILE:-}" ]]; then
+  echo "Using cached package: $DOWNLOADED_FILE"
+else
+  echo "Downloading flox..."
+
+  if [[ -z "${DOWNLOADED_FILE:-}" ]]; then
+    DOWNLOADED_FILE=$(mktemp -d -t "tmp.install-flox-action-XXXXXXXX")/$(basename "$INPUT_DOWNLOAD_URL")
+  else
+    mkdir -p "$(dirname "$DOWNLOADED_FILE")"
+  fi
+
+  curl --user-agent "install-flox-action" \
+      $PROXY_ARGS \
+      --retry "$RETRIES" \
+      --retry-delay 5 \
+      --retry-all-errors \
+      "$INPUT_DOWNLOAD_URL" \
+      --output "$DOWNLOADED_FILE";
+fi
+
+
+echo "Installing flox..."
+
+SUDO=''
+if [ "$EUID" -ne 0 ]; then
+  SUDO='sudo'
+fi
+
+INSTALL_RETRIES="$RETRIES"
+RETRY_DELAY=5
+
+install_package() {
+  case $DOWNLOADED_FILE in
+    *.rpm)
+      # A runner that keeps its disk may already have flox, and rpm treats a
+      # reinstall at the same version as an error under both -i and -U, which
+      # --replacepkgs permits. --oldpackage is deliberately absent: downgrading
+      # flox in place is not supported, so rpm refusing it is a second line of
+      # defense behind the check in the action itself.
+      $SUDO rpm -U --replacepkgs --notriggers "$DOWNLOADED_FILE"
+      ;;
+    *.deb)
+      $SUDO dpkg -i --no-triggers "$DOWNLOADED_FILE"
+      ;;
+    *.pkg)
+      $SUDO installer -pkg "$DOWNLOADED_FILE" -target /
+      ;;
+    *)
+      echo >&2 "Aborting: Unknown file '$DOWNLOADED_FILE' downloaded. Not sure how to install it."
+      exit 1
+      ;;
+  esac
+}
+
+for attempt in $(seq 1 "$INSTALL_RETRIES"); do
+  echo "Installation attempt $attempt of $INSTALL_RETRIES..."
+  if install_package; then
+    echo "Installation succeeded on attempt $attempt"
+    break
+  else
+    if [ "$attempt" -eq "$INSTALL_RETRIES" ]; then
+      echo >&2 "Installation failed after $INSTALL_RETRIES attempts"
+      exit 1
+    fi
+    echo "Installation failed, retrying in ${RETRY_DELAY}s..."
+    sleep "$RETRY_DELAY"
+  fi
+done
+
+# Remove downloaded file unless preserving for cache
+if [[ -z "${PRESERVE_DOWNLOAD:-}" ]]; then
+  rm "$DOWNLOADED_FILE"
+fi
+
+# In environments without systemd (e.g. ubuntu-slim containers), flox's
+# postinst falls back to single-user Nix but still chowns /nix to
+# root:nixbld, leaving the unprivileged runner user unable to access
+# /nix/var/nix/db. In single-user mode the current user must own /nix.
+# Detect systemd the same way flox's own postinst does: PID 1 is systemd.
+if [ "$(uname -s)" = "Linux" ] \
+   && [ "${EUID:-$(id -u)}" -ne 0 ] \
+   && [ "$(cat /proc/1/comm 2>/dev/null)" != "systemd" ]; then
+  echo "Single-user Nix detected (no systemd); taking ownership of /nix for uid=$(id -u)"
+  $SUDO chown -R "$(id -u):$(id -g)" /nix
+fi

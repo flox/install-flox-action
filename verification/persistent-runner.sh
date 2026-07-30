@@ -32,10 +32,10 @@ trap cleanup EXIT
 
 cleanup
 
-# The bundle resolves scripts/ relative to its own directory, so both have to
-# be staged in the layout the action expects.
+# The bundle reads the install script from dist/scripts/, or from ../scripts/
+# on older refs. Stage both so any ref works.
 STAGE="$(mktemp -d)"
-mkdir -p "$STAGE/dist" "$STAGE/scripts"
+mkdir -p "$STAGE/dist/scripts" "$STAGE/scripts"
 if [ "$REF" = "worktree" ]; then
   cp "$REPO_ROOT/dist/index.js" "$STAGE/dist/index.js"
   cp "$REPO_ROOT/scripts/install-flox.sh" "$STAGE/scripts/install-flox.sh"
@@ -44,7 +44,8 @@ else
   git -C "$REPO_ROOT" show "origin/$REF:scripts/install-flox.sh" \
     > "$STAGE/scripts/install-flox.sh"
 fi
-chmod +x "$STAGE/scripts/install-flox.sh"
+cp "$STAGE/scripts/install-flox.sh" "$STAGE/dist/scripts/install-flox.sh"
+chmod +x "$STAGE/scripts/install-flox.sh" "$STAGE/dist/scripts/install-flox.sh"
 
 say "Starting a container that outlives both runs ($REF)"
 docker run -d --name "$CONTAINER" \
