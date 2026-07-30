@@ -103,10 +103,10 @@ describe('main', () => {
       expect(core.setOutput).toHaveBeenCalledWith('nix-detected', 'true')
     })
 
-    // Issue #191: the flox packages symlink their own nix into /usr/bin, so a
+    // Issue #191: installing flox also installs nix into /usr/bin, so a
     // second run on a runner with a persistent disk finds a nix that this
     // action installed and mistakes it for one the user brought.
-    it('skips installation when flox is already present alongside its own nix', async () => {
+    it('skips installation when flox is already present alongside the nix it installed', async () => {
       mockWhich({ nix: '/usr/bin/nix', flox: '/usr/bin/flox' })
       core.getInput.mockImplementation(name => {
         if (name === 'channel') return 'stable'

@@ -73828,10 +73828,10 @@ async function run() {
 
     core.startGroup('Download & Install flox')
 
-    // The flox packages symlink their own Nix into /usr/bin, so on a runner
-    // whose disk survives the job, `nix` alone cannot tell a Nix the user
-    // brought from the one an earlier run of this action installed. Asking
-    // for flox first answers the question directly.
+    // Installing flox also installs Nix, symlinked into /usr/bin, so on a
+    // runner whose disk survives the job, `nix` alone cannot tell a Nix the
+    // user brought from the one an earlier run of this action installed.
+    // Asking for flox first answers the question directly.
     const floxPath = await which('flox', { nothrow: true })
     const nix = await which('nix', { nothrow: true })
     const nixDetected = nix !== null
@@ -73843,7 +73843,7 @@ async function run() {
     if (floxPath !== null) {
       installedVersion = await getInstalledVersion()
 
-      // Flox brings its own Nix, and a Nix store database migrates only
+      // Flox ships with Nix, and a Nix store database migrates only
       // forward: a Nix older than the one that last wrote the store can refuse
       // to operate against it. No package manager declines the swap on those
       // grounds, so the install would succeed and the machine would break
@@ -73870,12 +73870,12 @@ async function run() {
         !isOrderable(requestedVersion, installedVersion)
       ) {
         core.warning(
-          'Reinstalling flox over an existing installation from a reference ' +
-            'with no version ordering, so this may be a downgrade. Downgrading ' +
-            'in place is not supported: flox brings its own Nix, and a Nix ' +
-            'store cannot be read by a Nix older than the one that last wrote ' +
-            'it. If anything fails against /nix afterwards, remove flox and ' +
-            '/nix from the runner and install again.'
+          'This reinstalls flox over an existing installation from a ' +
+            'reference with no version ordering, so it may be a downgrade. ' +
+            'Downgrading in place is not supported: flox ships with Nix, ' +
+            'and a Nix store cannot be read by a Nix older than the one ' +
+            'that last wrote it. If anything fails against /nix afterward, ' +
+            'remove flox and /nix from the runner and install again.'
         )
       }
     }
