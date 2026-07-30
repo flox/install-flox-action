@@ -12,8 +12,8 @@ inputs:
     description: >-
       Select a specific version from a channel. Installing a
       version older than the one already on the runner fails:
-      flox brings its own Nix, which cannot read a store
-      written by a newer one.
+      flox ships with Nix, which cannot read a store written
+      by a newer one.
     default: ""
 
   channel:
