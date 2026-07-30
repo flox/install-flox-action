@@ -40,7 +40,10 @@ inputs:
     description: >-
       GitHub token for authenticated API requests.
       Prevents rate limiting when Nix resolves flake
-      inputs from GitHub.
+      inputs from GitHub. Written as the github.com
+      entry of access-tokens, keeping entries for
+      other hosts. Set to an empty string to write
+      no token at all.
     default: ${{ github.token }}
 
   trusted-environments:

@@ -747,7 +747,9 @@ describe('main', () => {
       expect(rewritten).not.toContain('# Added by install-flox-action')
     })
 
-    it('leaves a user-authored access-tokens line alone', async () => {
+    // An expired token on disk cannot be told apart from one an administrator
+    // still relies on, so the job's token takes github.com over either way.
+    it('takes over the github.com entry of an existing access-tokens line', async () => {
       core.getInput.mockImplementation(name => {
         if (name === 'github-token') return 'ghp_test123'
         return ''
@@ -756,11 +758,46 @@ describe('main', () => {
 
       await main.configureNixExtra()
 
-      expect(
-        writes()
-          .map(w => w.content)
-          .join('\n')
-      ).not.toContain('ghp_test123')
+      // The line in nix.conf is left as it is; the include appended after it
+      // wins, so the merged line is what Nix resolves.
+      const written = actionConfWrite()
+      expect(written).toContain('access-tokens = github.com=ghp_test123')
+      expect(written).not.toContain('user_pat')
+    })
+
+    // Credentials for hosts this action knows nothing about survive a takeover.
+    it('keeps entries for other hosts when it merges the job token in', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'github-token') return 'ghp_test123'
+        return ''
+      })
+      fs.readFileSync.mockReturnValue(
+        'access-tokens = gitlab.example=glpat_keep github.com=user_pat\n'
+      )
+
+      await main.configureNixExtra()
+
+      const written = actionConfWrite()
+      expect(written).toContain('gitlab.example=glpat_keep')
+      expect(written).toContain('github.com=ghp_test123')
+    })
+
+    // A runner carrying only a non-GitHub token still gets one, so flake
+    // fetches are authenticated rather than anonymous and rate limited.
+    it('adds a github.com entry when only other hosts are configured', async () => {
+      core.getInput.mockImplementation(name => {
+        if (name === 'github-token') return 'ghp_test123'
+        return ''
+      })
+      fs.readFileSync.mockReturnValue(
+        'access-tokens = gitlab.example=glpat_keep\n'
+      )
+
+      await main.configureNixExtra()
+
+      const written = actionConfWrite()
+      expect(written).toContain('gitlab.example=glpat_keep')
+      expect(written).toContain('github.com=ghp_test123')
     })
 
     // Someone who worked around the 401 by adding their own access-tokens
@@ -864,9 +901,9 @@ describe('main', () => {
       expect(core.setSecret).toHaveBeenCalledWith('admin_pat')
     })
 
-    // Silence here is indistinguishable from the bug: 401s, and passing
-    // github-token appearing to do nothing.
-    it('says so when it defers to a token already on disk', async () => {
+    // Taking over someone's token silently would look like the action ignoring
+    // their configuration.
+    it('says so when it takes over an existing github.com entry', async () => {
       core.getInput.mockImplementation(name =>
         name === 'github-token' ? 'ghp_test123' : ''
       )
@@ -875,20 +912,55 @@ describe('main', () => {
       await main.configureNixExtra()
 
       expect(core.info).toHaveBeenCalledWith(
-        expect.stringContaining('leaving it in place')
+        expect.stringContaining('Replaced the github.com entry')
       )
     })
 
-    it('masks the token even when it declines to write it', async () => {
+    // With every input empty there is nothing to write, but a block left by an
+    // earlier version still holds a token that died with the job that wrote it.
+    it('strips a legacy block even when it has nothing to write in its place', async () => {
+      core.getInput.mockReturnValue('')
+      fs.readFileSync.mockReturnValue(
+        '# existing\n# Added by install-flox-action\naccess-tokens = github.com=ghp_expired\n'
+      )
+
+      await main.configureNixExtra()
+
+      const rewritten = writeTo('/etc/nix/nix.conf')
+      expect(rewritten).toBeDefined()
+      expect(rewritten).not.toContain('ghp_expired')
+      expect(actionConfWrite()).toBeUndefined()
+    })
+
+    it('stays quiet when there was no github.com entry to take over', async () => {
+      core.getInput.mockImplementation(name =>
+        name === 'github-token' ? 'ghp_test123' : ''
+      )
+      fs.readFileSync.mockReturnValue('')
+
+      await main.configureNixExtra()
+
+      expect(core.info).not.toHaveBeenCalledWith(
+        expect.stringContaining('Replaced the github.com entry')
+      )
+    })
+
+    // Tokens for other hosts are copied into the file this action writes, so
+    // they have to be masked as well as its own.
+    it('masks tokens it carries forward from the existing configuration', async () => {
       core.getInput.mockImplementation(name => {
         if (name === 'github-token') return 'ghp_test123'
         return ''
       })
-      fs.readFileSync.mockReturnValue('access-tokens = github.com=user_pat\n')
+      fs.readFileSync.mockReturnValue(
+        'access-tokens = gitlab.example=glpat_secret github.com=user_pat\n'
+      )
 
       await main.configureNixExtra()
 
       expect(core.setSecret).toHaveBeenCalledWith('ghp_test123')
+      expect(core.setSecret).toHaveBeenCalledWith('glpat_secret')
+      expect(core.setSecret).toHaveBeenCalledWith('user_pat')
     })
 
     // A bare `include` of a missing file is a hard error in Nix. The post-job
