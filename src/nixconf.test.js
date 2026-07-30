@@ -32,3 +32,66 @@ describe('pruneIncludes', () => {
     expect(nixconf.pruneIncludes(conf, null)).toBe(conf)
   })
 })
+
+// These encode Nix's own resolution rules, which decide whether the job's token
+// reaches Nix at all. Verified against `nix config show access-tokens`.
+describe('readAccessTokens', () => {
+  const read = conf => Object.fromEntries(nixconf.readAccessTokens(conf))
+
+  it('finds nothing in a file that configures no tokens', () => {
+    expect(read('build-users-group =\nsandbox = relaxed')).toEqual({})
+  })
+
+  it('reads several hosts from one line', () => {
+    expect(read('access-tokens = github.com=A gitlab.example=B')).toEqual({
+      'github.com': 'A',
+      'gitlab.example': 'B'
+    })
+  })
+
+  it('lets a later plain line replace everything set before it', () => {
+    expect(
+      read('access-tokens = a.com=OLD\naccess-tokens = b.com=NEW')
+    ).toEqual({ 'b.com': 'NEW' })
+  })
+
+  it('lets an extra- line add a host that is not already set', () => {
+    expect(
+      read('access-tokens = a.com=A\nextra-access-tokens = b.com=B')
+    ).toEqual({ 'a.com': 'A', 'b.com': 'B' })
+  })
+
+  // An `extra-` line contributes only hosts that are not already set, so a
+  // token on disk outranks one written after it.
+  it('does not let an extra- line displace a host already set', () => {
+    expect(
+      read(
+        'access-tokens = github.com=STALE\nextra-access-tokens = github.com=FRESH'
+      )
+    ).toEqual({ 'github.com': 'STALE' })
+  })
+
+  it('ignores entries with no host separator', () => {
+    expect(read('access-tokens = junk github.com=A')).toEqual({
+      'github.com': 'A'
+    })
+  })
+
+  it('keeps a token containing an equals sign intact', () => {
+    expect(read('access-tokens = github.com=abc=def')).toEqual({
+      'github.com': 'abc=def'
+    })
+  })
+})
+
+describe('formatAccessTokens', () => {
+  it('round-trips through readAccessTokens', () => {
+    const line = 'access-tokens = github.com=A gitlab.example=B'
+    const formatted = nixconf.formatAccessTokens(nixconf.readAccessTokens(line))
+    expect(formatted).toBe('github.com=A gitlab.example=B')
+  })
+
+  it('produces an empty string when there is nothing to write', () => {
+    expect(nixconf.formatAccessTokens(new Map())).toBe('')
+  })
+})

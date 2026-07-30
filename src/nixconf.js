@@ -48,19 +48,42 @@ function includeLine(name) {
   return `!include ${name}`
 }
 
-// Matches the token in an access-tokens line so it can be masked.
-const TOKEN_VALUE = /^\s*access-tokens\s*=\s*\S+?=(\S+)/gm
+const ACCESS_TOKENS_LINE = /^\s*(extra-)?access-tokens\s*=\s*(.*)$/gm
 
 function readConf(p) {
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : ''
 }
 
-// Registers every token already in a config file for masking. The action's own
-// token is masked when it is written; this covers one an administrator wrote by
-// hand, which the action would otherwise have no reason to know about.
+// Resolves the access-tokens a config file leaves in effect, following Nix's
+// own rules: a plain line replaces everything set before it, while an `extra-`
+// line contributes only hosts that are not already set.
+// https://nix.dev/manual/nix/latest/command-ref/conf-file
+function readAccessTokens(conf) {
+  const tokens = new Map()
+  for (const match of conf.matchAll(ACCESS_TOKENS_LINE)) {
+    const isExtra = match[1] !== undefined
+    if (!isExtra) tokens.clear()
+    for (const entry of match[2].trim().split(/\s+/).filter(Boolean)) {
+      const split = entry.indexOf('=')
+      if (split === -1) continue
+      const host = entry.slice(0, split)
+      if (isExtra && tokens.has(host)) continue
+      tokens.set(host, entry.slice(split + 1))
+    }
+  }
+  return tokens
+}
+
+function formatAccessTokens(tokens) {
+  return [...tokens].map(([host, token]) => `${host}=${token}`).join(' ')
+}
+
+// Registers every token in a config file for masking. These are copied forward
+// into the file this action writes, so they reach the log the same way its own
+// token would.
 function maskTokensIn(conf) {
-  for (const match of conf.matchAll(TOKEN_VALUE)) {
-    if (match[1]) core.setSecret(match[1])
+  for (const token of readAccessTokens(conf).values()) {
+    if (token) core.setSecret(token)
   }
 }
 
@@ -148,6 +171,8 @@ module.exports = {
   confPath,
   includeLine,
   readConf,
+  readAccessTokens,
+  formatAccessTokens,
   maskTokensIn,
   stripLegacyBlocks,
   pruneIncludes,

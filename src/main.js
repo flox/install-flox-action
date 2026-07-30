@@ -133,11 +133,6 @@ async function configureNixExtra() {
     )
   }
 
-  // A token the user placed in nix.conf themselves is theirs to manage. One
-  // this action left there on an earlier run is not, and it expired when that
-  // job ended, so it must not be mistaken for the user's.
-  const userSuppliedToken = /^\s*access-tokens\s*=/m.test(cleanedConf)
-
   const settings = []
   if (extraNixConfig !== '') {
     settings.push(extraNixConfig)
@@ -148,24 +143,30 @@ async function configureNixExtra() {
       settings.push(`extra-trusted-public-keys = ${extraKeys}`)
     }
   }
-  if (githubToken !== '' && !userSuppliedToken) {
-    settings.push(`access-tokens = github.com=${githubToken}`)
-  } else if (githubToken !== '') {
-    core.info(
-      `Found an existing access-tokens line in ${nixconf.NIX_CONF_PATH}; ` +
-        "leaving it in place and not writing this job's token. If it is a " +
-        'stale workaround rather than a token you manage, remove it: an ' +
-        'expired token there causes HTTP 401 where no token would not.'
-    )
+  if (githubToken !== '') {
+    // The job's token has to win: an expired one on disk produces 401s and
+    // cannot be told apart from a token still in use. Entries for other hosts
+    // are carried forward so taking github.com over does not discard them.
+    const tokens = nixconf.readAccessTokens(cleanedConf)
+    const replaced = tokens.has('github.com')
+    tokens.set('github.com', githubToken)
+    settings.push(`access-tokens = ${nixconf.formatAccessTokens(tokens)}`)
+
+    if (replaced) {
+      core.info(
+        `Replaced the github.com entry in the existing access-tokens line in ` +
+          `${nixconf.NIX_CONF_PATH} with this job's token, keeping entries ` +
+          'for other hosts. Set github-token to an empty string to leave the ' +
+          'existing configuration untouched.'
+      )
+    }
   }
 
   await nixconf.ensureConfDir()
 
   if (settings.length === 0) {
-    // A legacy block still has to go when there is nothing to write in its
-    // place. Someone who worked around the expired token by adding their own
-    // access-tokens line reaches exactly this case, and leaving the block
-    // would keep the expired token below theirs, where Nix still reads it.
+    // Nothing to write, but a legacy block still has to go: it holds a token
+    // that expired with the job that wrote it, and Nix would go on reading it.
     if (migrated) {
       await nixconf.writeAsRoot(
         nixconf.NIX_CONF_PATH,
