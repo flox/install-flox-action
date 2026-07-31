@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Install Flox"
@@ -77,7 +77,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Test Local Action"
@@ -116,7 +116,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Install Flox with new inputs"
@@ -166,17 +166,17 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Install Nix (DeterminateSystems)"
         if: matrix.nix-installer == 'determinate-systems'
-        uses: DeterminateSystems/nix-installer-action@a7ad9c4f0c65208097f4d34f3cfa1913b80cce5c # main
+        uses: DeterminateSystems/nix-installer-action@33c9ab3ef95cd57c164d9d6eb1f9a46338538d41 # main
 
 
       - name: "Install Nix (Cachix)"
         if: matrix.nix-installer == 'cachix'
-        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
 
 
       - name: "Install Flox (using existing Nix)"
@@ -215,7 +215,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Install Flox (first run)"
@@ -301,7 +301,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Install act"
