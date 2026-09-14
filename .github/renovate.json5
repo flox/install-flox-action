@@ -1,0 +1,106 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // COMMON BASE — keep identical across all flox repos.
+  extends: [
+    "config:recommended",
+    "group:allNonMajor", // one PR for all non-major updates (low noise)
+    "helpers:pinGitHubActionDigests", // pin Actions to SHAs (supply chain)
+    "docker:pinDigests", // pin Docker image digests (inert if no Dockerfile)
+    "abandonments:recommended", // flag unmaintained packages
+    ":configMigration", // auto-PR Renovate config migrations
+    ":semanticCommitTypeAll(chore)", // all dep commits use the chore type
+  ],
+
+  timezone: "UTC",
+  automerge: false, // every update is reviewed by a human
+  rebaseWhen: "behind-base-branch",
+  minimumReleaseAge: "7 days", // don't adopt a release until it's a week old
+  constraintsFiltering: "strict", // skip updates incompatible with declared runtimes
+  // Update lockfiles in place; only edit a manifest when a version goes out of
+  // range. Manager-agnostic — applies to whatever lockfile-based managers a repo
+  // has (npm, cargo, terraform, uv…) and is ignored by the rest.
+  rangeStrategy: "update-lockfile",
+  prConcurrentLimit: 10,
+  prHourlyLimit: 4,
+  dependencyDashboard: true,
+  dependencyDashboardTitle: "Renovate dependency dashboard",
+
+  // Refresh lockfiles (npm/cargo/uv/terraform) weekly. Note: flake.lock is NOT
+  // covered — Renovate's nix manager is off by default; use a dedicated
+  // update-flake-lock workflow for that.
+  //
+  // This is what actually drains transitive CVEs. The large majority of open
+  // Dependabot alerts across these repos sit on TRANSITIVE packages (undici,
+  // @xmldom/xmldom, fast-uri, js-yaml, brace-expansion…), which no
+  // manifest-level rule can match — only a lockfile refresh moves them, and
+  // it is the gap that made Dependabot version-updates insufficient here.
+  // Left NOT automerged on purpose: a refresh re-resolves runtime
+  // dependencies too, which is outside the automerge boundary below.
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["* 0-6 * * 1"],
+  },
+
+  // Security fixes bypass the 7-day cooldown and the normal schedule.
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["security"],
+    minimumReleaseAge: "1 day",
+    schedule: ["at any time"],
+  },
+  osvVulnerabilityAlerts: true,
+
+  packageRules: [
+    // --- common rules (keep identical across repos) ---
+    {
+      description: "Label all major updates so they're easy to review",
+      matchUpdateTypes: ["major"],
+      labels: ["major-upgrade"],
+    },
+
+    // Dev tooling (linters, test runners, type stubs, bundlers) is never
+    // shipped to users — it only has to keep the build and test suite green,
+    // which CI already proves on the PR. Split non-major devDependency bumps
+    // out of the `group:allNonMajor` PR so they can carry their own automerge
+    // flag, and let them land unattended.
+    //
+    // Deliberately NOT automerged:
+    //   - major bumps (matchUpdateTypes omits "major"), which is what keeps
+    //     vitest 4.x / astro 7.x / brace-expansion 5.x-class jumps in front of
+    //     a human;
+    //   - anything in `dependencies`, which ships.
+    //
+    // SAFETY PRECONDITION: automerge relies on GitHub's auto-merge, which only
+    // waits for status checks that branch protection marks REQUIRED. On a
+    // branch with no required checks, `--auto` degrades to an immediate merge
+    // and the PR lands while CI is still running. Confirm required checks on
+    // main before enabling this.
+    {
+      description: "Automerge non-major devDependency updates",
+      matchDepTypes: ["devDependencies"],
+      matchUpdateTypes: ["patch", "minor"],
+      groupName: "dev-dependencies (non-major)",
+      automerge: true,
+      automergeType: "pr",
+    },
+
+    // CUSTOM (install-flox-action) — edit this section per repo.
+    // This repo ships `dist/index.js`, a bundle produced from `dependencies`
+    // by `npm run all`. A dependency bump therefore changes the artifact that
+    // every consumer of flox/install-flox-action executes, and the checked-in
+    // dist/ has to be regenerated to match — update-dist.yml does that by
+    // pushing a commit onto the PR branch.
+    //
+    // That push is why `dependencies` must never automerge here: auto-merge
+    // can land the lockfile change before update-dist.yml has committed the
+    // rebuilt bundle, publishing a lockfile and a dist/ that disagree.
+    // devDependencies are not bundled into dist/, so they are unaffected and
+    // are covered by the common non-major devDependency rule above.
+    {
+      description: "CUSTOM(install-flox-action): never automerge bundled runtime deps",
+      matchDepTypes: ["dependencies"],
+      automerge: false,
+    },
+  ],
+}
