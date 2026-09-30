@@ -1,4 +1,5 @@
 const core = require('@actions/core')
+const exec = require('@actions/exec')
 const fs = require('fs')
 const nixconf = require('./nixconf')
 
@@ -8,7 +9,7 @@ const nixconf = require('./nixconf')
 //
 // Only this job's own file is removed. A machine may be running other jobs
 // whose files are live, and taking one of those would strand a job mid-run.
-async function run() {
+async function removeNixConfig() {
   try {
     const confName = core.getState('confName')
     const existingConf = nixconf.readConf(nixconf.NIX_CONF_PATH)
@@ -35,6 +36,24 @@ async function run() {
   } catch (error) {
     core.warning(`Could not remove Nix configuration: ${error.message}`)
   }
+}
+
+// The token stored by `flox auth login` outlives the job on a runner whose
+// disk does, so it is removed here. Only a login this job made is undone: the
+// state is absent otherwise, and a credential someone else left is not ours.
+async function logoutOfFloxHub() {
+  if (core.getState('floxhubLogin') !== 'true') return
+  try {
+    await exec.exec('flox', ['auth', 'logout'])
+    core.info('Logged out of FloxHub')
+  } catch (error) {
+    core.warning(`Could not log out of FloxHub: ${error.message}`)
+  }
+}
+
+async function run() {
+  await logoutOfFloxHub()
+  await removeNixConfig()
 }
 
 module.exports = { run }

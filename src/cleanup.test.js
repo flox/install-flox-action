@@ -129,4 +129,67 @@ describe('cleanup', () => {
     )
     expect(core.setFailed).not.toHaveBeenCalled()
   })
+
+  describe('FloxHub logout', () => {
+    const LOGOUT = ['auth', 'logout']
+    const isLogout = ([cmd, args]) =>
+      cmd === 'flox' && args[0] === LOGOUT[0] && args[1] === LOGOUT[1]
+
+    function state(values) {
+      core.getState.mockImplementation(name => values[name] ?? '')
+    }
+
+    beforeEach(() => {
+      fs.existsSync.mockReturnValue(false)
+      fs.readFileSync.mockReturnValue('# existing\n')
+    })
+
+    // On a runner whose disk survives the job, the stored token would
+    // authenticate whatever runs next.
+    it('logs out when this job logged in', async () => {
+      state({ floxhubLogin: 'true' })
+
+      await cleanup.run()
+
+      expect(exec.exec).toHaveBeenCalledWith('flox', LOGOUT)
+    })
+
+    it('does not log out when this job did not log in', async () => {
+      state({})
+
+      await cleanup.run()
+
+      expect(exec.exec.mock.calls.filter(isLogout)).toHaveLength(0)
+    })
+
+    it('warns rather than failing the job when logout fails', async () => {
+      state({ floxhubLogin: 'true' })
+      exec.exec.mockRejectedValue(new Error('flox: command not found'))
+
+      await cleanup.run()
+
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining('flox: command not found')
+      )
+      expect(core.setFailed).not.toHaveBeenCalled()
+    })
+
+    it('still removes the Nix config when logout fails', async () => {
+      state({ floxhubLogin: 'true', confName: MINE })
+      fs.existsSync.mockReturnValue(true)
+      fs.readFileSync.mockReturnValue(`!include ${MINE}\n`)
+      exec.exec.mockImplementation(async cmd => {
+        if (cmd === 'flox') throw new Error('logout failed')
+        return 0
+      })
+
+      await cleanup.run()
+
+      expect(exec.exec).toHaveBeenCalledWith('sudo', [
+        'rm',
+        '-f',
+        `/etc/nix/${MINE}`
+      ])
+    })
+  })
 })

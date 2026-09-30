@@ -83,6 +83,7 @@ jobs:
 | `retries` | Number of retries for downloading and installing Flox | `"3"` |
 | `use-cache` | Cache the downloaded flox package to speed up subsequent runs | `"true"` |
 | `github-token` | GitHub token for Nix flake rate limiting | `${{ github.token }}` |
+| `floxhub-token` | FloxHub token to log flox in with; needs flox 1.14.0 or newer | `""` |
 | `trusted-environments` | Comma-separated FloxHub envs to trust (e.g. `owner/env1,owner/env2`) | `""` |
 | `extra-nix-config` | Additional Nix settings, one per line, written to the file this action owns | `""` |
 | `extra-substituters` | Space-separated Nix binary cache URLs | `""` |
@@ -121,6 +122,23 @@ jobs:
     extra-substituters: "https://my-cache.example.com"
     extra-substituter-keys: "my-cache.example.com-1:abc123..."
 ```
+
+## 🔑 Authenticating with FloxHub
+
+Pass a FloxHub token as `floxhub-token` and the action logs flox in to FloxHub for the rest of the job. The token can be a service-account token (`flox_sat_...`) or a personal token. Store it as a secret:
+
+```yml
+- name: Install Flox
+  uses: flox/install-flox-action@v2
+  with:
+    floxhub-token: ${{ secrets.FLOXHUB_TOKEN }}
+```
+
+Leaving it empty, the default, skips login.
+
+**Requires flox 1.14.0 or newer.** If flox is older, whether pinned with `version` or already on the runner, the step fails with a message asking you to upgrade.
+
+The action leaves no FloxHub login behind on persistent runners.
 
 ## 🔧 Pre-installed Nix
 

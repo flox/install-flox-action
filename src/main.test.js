@@ -1483,3 +1483,193 @@ describe('run disable-metrics guard', () => {
     )
   })
 })
+
+describe('floxhub-token', () => {
+  const TOKEN = 'flox_sat_0123456789abcdef'
+  const LOGIN_ARGS = [
+    'auth',
+    'login',
+    '--token-file',
+    '-',
+    '--insecure-storage',
+    '--once'
+  ]
+  const isLogin = ([cmd, args]) =>
+    cmd === 'flox' && args[0] === 'auth' && args[1] === 'login'
+
+  function setInputs(inputs) {
+    core.getInput.mockImplementation(name => inputs[name] ?? '')
+  }
+
+  // Flox is already on the runner, so the flox commands the run issues are
+  // only `--version` (answered with `version`), login, and config.
+  function mockFlox({ version = '1.14.0', loginError = null } = {}) {
+    which.mockImplementation(cmd =>
+      Promise.resolve(cmd === 'flox' ? '/usr/bin/flox' : null)
+    )
+    exec.exec.mockImplementation(async (cmd, args, opts) => {
+      if (cmd === 'flox' && args[0] === '--version' && opts?.listeners) {
+        opts.listeners.stdout(Buffer.from(`${version}\n`))
+      }
+      if (cmd === 'flox' && args[0] === 'auth' && loginError) {
+        throw loginError
+      }
+      return 0
+    })
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    fs.existsSync.mockReturnValue(true)
+    fs.readFileSync.mockReturnValue('')
+    core.summary = {
+      addHeading: jest.fn().mockReturnThis(),
+      addTable: jest.fn().mockReturnThis(),
+      write: jest.fn().mockResolvedValue(undefined)
+    }
+  })
+
+  it('does not log in when the input is empty', async () => {
+    mockFlox()
+    setInputs({})
+
+    await main.run()
+
+    expect(exec.exec.mock.calls.filter(isLogin)).toHaveLength(0)
+    expect(core.saveState).not.toHaveBeenCalledWith(
+      'floxhubLogin',
+      expect.anything()
+    )
+    expect(core.setSecret).not.toHaveBeenCalled()
+  })
+
+  it('logs in with the token on stdin and never on the command line', async () => {
+    mockFlox()
+    setInputs({ 'floxhub-token': TOKEN })
+
+    await main.run()
+
+    const logins = exec.exec.mock.calls.filter(isLogin)
+    expect(logins).toHaveLength(1)
+    const [, args, opts] = logins[0]
+    expect(args).toEqual(LOGIN_ARGS)
+    expect(opts.input.toString()).toBe(TOKEN)
+    for (const [, callArgs = []] of exec.exec.mock.calls) {
+      expect(callArgs.join(' ')).not.toContain(TOKEN)
+    }
+    expect(core.setFailed).not.toHaveBeenCalled()
+  })
+
+  it('masks the token and records the login for the post step', async () => {
+    mockFlox()
+    setInputs({ 'floxhub-token': TOKEN })
+
+    await main.run()
+
+    expect(core.setSecret).toHaveBeenCalledWith(TOKEN)
+    expect(core.saveState).toHaveBeenCalledWith('floxhubLogin', 'true')
+  })
+
+  it('accepts a token without the flox_sat_ prefix and does not warn', async () => {
+    mockFlox()
+    setInputs({ 'floxhub-token': 'a-personal-token' })
+
+    await main.run()
+
+    expect(exec.exec.mock.calls.filter(isLogin)).toHaveLength(1)
+    expect(core.warning).not.toHaveBeenCalled()
+  })
+
+  it('logs in before any flox config command', async () => {
+    mockFlox()
+    setInputs({
+      'floxhub-token': TOKEN,
+      'trusted-environments': 'owner/env',
+      'disable-upgrade-notifications': 'true',
+      'extra-flox-config': 'search_limit=20'
+    })
+
+    await main.run()
+
+    const flox = exec.exec.mock.calls.filter(([cmd]) => cmd === 'flox')
+    const loginAt = flox.findIndex(isLogin)
+    const configAt = flox.findIndex(([, args]) => args[0] === 'config')
+    expect(loginAt).toBeGreaterThan(-1)
+    expect(configAt).toBeGreaterThan(-1)
+    expect(loginAt).toBeLessThan(configAt)
+  })
+
+  // `--token-file` does not exist before 1.14.0, so flox would reject the
+  // flag with an error that does not say what to do.
+  it.each(['1.13.9', '1.9.0', '0.9.9'])(
+    'fails and asks for an upgrade when flox %s is installed',
+    async version => {
+      mockFlox({ version })
+      setInputs({ 'floxhub-token': TOKEN })
+
+      await main.run()
+
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining('1.14.0')
+      )
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining(`flox ${version}`)
+      )
+      expect(exec.exec.mock.calls.filter(isLogin)).toHaveLength(0)
+      expect(core.saveState).not.toHaveBeenCalledWith(
+        'floxhubLogin',
+        expect.anything()
+      )
+    }
+  )
+
+  // Real builds report e.g. `1.16.0-gc483514`; only the leading triple counts.
+  it.each(['1.14.0', '1.14.1', '1.16.0-gc483514', 'flox 2.0.0', '1.14.0-dev'])(
+    'logs in when flox %s is installed',
+    async version => {
+      mockFlox({ version })
+      setInputs({ 'floxhub-token': TOKEN })
+
+      await main.run()
+
+      expect(exec.exec.mock.calls.filter(isLogin)).toHaveLength(1)
+      expect(core.setFailed).not.toHaveBeenCalled()
+    }
+  )
+
+  it('rejects an old build whose version carries a suffix', async () => {
+    mockFlox({ version: '1.13.0-gabc1234' })
+    setInputs({ 'floxhub-token': TOKEN })
+
+    await main.run()
+
+    expect(core.setFailed).toHaveBeenCalledWith(
+      expect.stringContaining('1.14.0')
+    )
+  })
+
+  it('fails the step with a clear error when login fails', async () => {
+    mockFlox({ loginError: new Error('exit code 1') })
+    setInputs({
+      'floxhub-token': TOKEN,
+      'extra-flox-config': 'search_limit=20'
+    })
+
+    await main.run()
+
+    expect(core.setFailed).toHaveBeenCalledWith(
+      expect.stringContaining('Logging in to FloxHub failed')
+    )
+    expect(core.setFailed.mock.calls[0][0]).not.toContain(TOKEN)
+    expect(core.saveState).not.toHaveBeenCalledWith(
+      'floxhubLogin',
+      expect.anything()
+    )
+    expect(exec.exec).not.toHaveBeenCalledWith('flox', [
+      'config',
+      '--set',
+      'search_limit',
+      '20'
+    ])
+  })
+})
