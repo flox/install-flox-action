@@ -47372,6 +47372,7 @@ module.exports = {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(37484)
+const exec = __nccwpck_require__(95236)
 const fs = __nccwpck_require__(79896)
 const nixconf = __nccwpck_require__(62580)
 
@@ -47381,7 +47382,7 @@ const nixconf = __nccwpck_require__(62580)
 //
 // Only this job's own file is removed. A machine may be running other jobs
 // whose files are live, and taking one of those would strand a job mid-run.
-async function run() {
+async function removeNixConfig() {
   try {
     const confName = core.getState('confName')
     const existingConf = nixconf.readConf(nixconf.NIX_CONF_PATH)
@@ -47408,6 +47409,24 @@ async function run() {
   } catch (error) {
     core.warning(`Could not remove Nix configuration: ${error.message}`)
   }
+}
+
+// The token stored by `flox auth login` outlives the job on a runner whose
+// disk does, so it is removed here. Only a login this job made is undone: the
+// state is absent otherwise, and a credential someone else left is not ours.
+async function logoutOfFloxHub() {
+  if (core.getState('floxhubLogin') !== 'true') return
+  try {
+    await exec.exec('flox', ['auth', 'logout'])
+    core.info('Logged out of FloxHub')
+  } catch (error) {
+    core.warning(`Could not log out of FloxHub: ${error.message}`)
+  }
+}
+
+async function run() {
+  await logoutOfFloxHub()
+  await removeNixConfig()
 }
 
 module.exports = { run }
@@ -47665,6 +47684,45 @@ async function configureFlox() {
   }
 }
 
+// `flox auth login --token-file` first shipped in this release.
+const TOKEN_FILE_MIN_VERSION = '1.14.0'
+
+async function loginToFloxHub() {
+  const token = core.getInput('floxhub-token')
+  if (token === '') return
+  core.setSecret(token)
+
+  // Builds report themselves as e.g. `1.16.0-gc483514`, which parseVersion
+  // rejects, so only the leading triple is compared. A version with no such
+  // triple is let through and left to flox to accept or refuse.
+  const installed = normalizeVersion(await getInstalledVersion())
+  const leading = installed.match(/^\d+\.\d+\.\d+/)
+  if (leading !== null && isDowngrade(leading[0], TOKEN_FILE_MIN_VERSION)) {
+    throw new Error(
+      `floxhub-token needs flox ${TOKEN_FILE_MIN_VERSION} or newer, but ` +
+        `flox ${installed} is installed. Upgrade flox, or pin version to ` +
+        `${TOKEN_FILE_MIN_VERSION} or later.`
+    )
+  }
+
+  // The token goes over stdin because @actions/exec echoes the command line
+  // into the job log.
+  try {
+    await exec.exec(
+      'flox',
+      ['auth', 'login', '--token-file', '-', '--insecure-storage', '--once'],
+      { input: Buffer.from(token) }
+    )
+  } catch (error) {
+    throw new Error(`Logging in to FloxHub failed: ${error.message}`)
+  }
+
+  // Tells the post step to log out. Saved only once a credential exists, so a
+  // job that never logged in never touches one it does not own.
+  core.saveState('floxhubLogin', 'true')
+  core.info('Logged in to FloxHub')
+}
+
 async function getInstalledVersion() {
   let output = ''
   await exec.exec('flox', ['--version'], {
@@ -47861,6 +47919,7 @@ async function run() {
     if (!usesExistingNix) {
       await configureNixExtra()
     }
+    await loginToFloxHub()
     await configureFlox()
     core.endGroup()
 

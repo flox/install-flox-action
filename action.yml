@@ -46,6 +46,14 @@ inputs:
       no token at all.
     default: ${{ github.token }}
 
+  floxhub-token:
+    description: >-
+      FloxHub token (a service-account token or a personal
+      token) to authenticate flox with before any other flox
+      command. Leaves no login behind on persistent runners.
+      Requires flox 1.14.0 or newer. Leave empty to skip login.
+    default: ""
+
   trusted-environments:
     description: >-
       Comma-separated list of FloxHub environments to

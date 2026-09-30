@@ -245,6 +245,45 @@ async function configureFlox() {
   }
 }
 
+// `flox auth login --token-file` first shipped in this release.
+const TOKEN_FILE_MIN_VERSION = '1.14.0'
+
+async function loginToFloxHub() {
+  const token = core.getInput('floxhub-token')
+  if (token === '') return
+  core.setSecret(token)
+
+  // Builds report themselves as e.g. `1.16.0-gc483514`, which parseVersion
+  // rejects, so only the leading triple is compared. A version with no such
+  // triple is let through and left to flox to accept or refuse.
+  const installed = normalizeVersion(await getInstalledVersion())
+  const leading = installed.match(/^\d+\.\d+\.\d+/)
+  if (leading !== null && isDowngrade(leading[0], TOKEN_FILE_MIN_VERSION)) {
+    throw new Error(
+      `floxhub-token needs flox ${TOKEN_FILE_MIN_VERSION} or newer, but ` +
+        `flox ${installed} is installed. Upgrade flox, or pin version to ` +
+        `${TOKEN_FILE_MIN_VERSION} or later.`
+    )
+  }
+
+  // The token goes over stdin because @actions/exec echoes the command line
+  // into the job log.
+  try {
+    await exec.exec(
+      'flox',
+      ['auth', 'login', '--token-file', '-', '--insecure-storage', '--once'],
+      { input: Buffer.from(token) }
+    )
+  } catch (error) {
+    throw new Error(`Logging in to FloxHub failed: ${error.message}`)
+  }
+
+  // Tells the post step to log out. Saved only once a credential exists, so a
+  // job that never logged in never touches one it does not own.
+  core.saveState('floxhubLogin', 'true')
+  core.info('Logged in to FloxHub')
+}
+
 async function getInstalledVersion() {
   let output = ''
   await exec.exec('flox', ['--version'], {
@@ -441,6 +480,7 @@ async function run() {
     if (!usesExistingNix) {
       await configureNixExtra()
     }
+    await loginToFloxHub()
     await configureFlox()
     core.endGroup()
 
