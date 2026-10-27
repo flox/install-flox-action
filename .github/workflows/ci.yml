@@ -85,6 +85,7 @@ jobs:
         with:
           channel: "${{ matrix.release-env }}"
           disable-metrics: true
+          floxhub-token: "${{ secrets.MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN }}"
 
       - name: "Test: flox"
         run: |
@@ -126,6 +127,7 @@ jobs:
           channel: stable
           disable-metrics: "true"
           disable-upgrade-notifications: "true"
+          floxhub-token: "${{ secrets.MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN }}"
 
       - name: "Verify outputs"
         run: |
@@ -183,6 +185,7 @@ jobs:
         uses: "./"
         with:
           disable-metrics: true
+          floxhub-token: "${{ secrets.MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN }}"
 
       - name: "Test: flox"
         run: |
@@ -222,6 +225,7 @@ jobs:
         uses: "./"
         with:
           disable-metrics: "true"
+          floxhub-token: "${{ secrets.MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN }}"
 
       # Hosted runners start each job on a fresh VM, so reaching the state a
       # self-hosted runner is in after one job means recreating it by hand: the
@@ -240,6 +244,7 @@ jobs:
         uses: "./"
         with:
           disable-metrics: "true"
+          floxhub-token: "${{ secrets.MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN }}"
 
       # Each invocation writes its own file, and nix.conf reads the last
       # include last, so the winning file is the one the second run wrote.
@@ -315,7 +320,12 @@ jobs:
           docker pull
           ghcr.io/catthehacker/ubuntu:js-24.04
 
+      # Given only a name, `-s` makes `act` read the secret's value from the
+      # environment variable of that name, which keeps the token off the
+      # command line.
       - name: "Run action with act"
+        env:
+          MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN: "${{ secrets.MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN }}"
         run: >-
           ./bin/act push
           -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:js-24.04
@@ -323,6 +333,7 @@ jobs:
           --matrix os:ubuntu-latest
           --matrix release-env:stable
           --env FLOX_DISABLE_METRICS=true
+          -s MANAGED_INSTALL_FLOX_ACTION_FLOXHUB_TOKEN
 
   report-failure:
     name: "Report Failure"
