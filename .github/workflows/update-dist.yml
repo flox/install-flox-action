@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
 
       - name: "Install Flox"
@@ -50,7 +50,7 @@ jobs:
         run: git status
 
       - name: "Commit changes"
-        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7
+        uses: stefanzweifel/git-auto-commit-action@d0b01107b5db882071f96de5dd4b54961ea93f4c # v7
 
         with:
           file_pattern: "dist/ badges/coverage.svg"

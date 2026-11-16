@@ -14,20 +14,20 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: "Checkout"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
         with:
           fetch-depth: 0
 
       - name: "Install Flox"
-        uses: flox/install-flox-action@8c71d71672ea52e1494b168ac0f27d46b96068be # v2.5.2
+        uses: flox/install-flox-action@5bb9eaaffbeaa699a8251a1ae21ecf4c8e0e37d4 # v2.7.0
 
 
       - name: "Update Flox Environment"
         run: flox update
 
       - name: "Create Pull Request"
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
 
         with:
           token: ${{ secrets.MANAGED_FLOXBOT_GITHUB_ACCESS_TOKEN_REPO_SCOPE }}
